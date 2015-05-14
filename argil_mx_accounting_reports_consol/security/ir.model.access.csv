@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_monthly_balance,account.monthly_balance,model_account_monthly_balance,account.group_account_user,1,0,0,0
+access_account_account_lines,account.account_lines,model_account_account_lines,account.group_account_user,1,0,0,0
+access_account_mx_report_definition,account.mx_report_definition,model_account_mx_report_definition,account.group_account_manager,1,1,1,1
+access_account_mx_report_data,account.mx_report_data,model_account_mx_report_data,account.group_account_user,1,0,0,0
+access_account_mx_report_data_wizard,account.mx_report_data_wizard,model_account_mx_report_data_wizard,account.group_account_user,1,0,0,0

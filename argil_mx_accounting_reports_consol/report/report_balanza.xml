@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+<template id="report_balanza">
+    <t t-call="report.external_layout">
+        <div class="page">
+            <div class="oe_structure"/>
+            <h2>
+                <span >Balanza de Comprobación</span>
+            </h2>
+            <table class="table table-condensed" style="border-width: thin;border-spacing: 2px;border-style: solid;border-color: gray;border-collapse: collapse;font-family:Helvetica Arial;">
+                <thead>
+                    <tr>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Periodo</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Cuenta</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Descripcion</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Empresa</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Nivel</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Naturaleza</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Saldo Inicial</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Cargos</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Abonos</th>
+                        <th style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-weight: bold;font-size: 10pt;">Saldo Final</th>
+                    </tr>
+               </thead>
+                <t t-foreach="docs" t-as="o">
+                   <tbody class="sale_tbody">
+                        <tr>
+                            <td  style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: center;font-family: sans-serif;font-size: 10pt;"><span t-field="o.period_id.name"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-size: 10pt;"><span t-field="o.account_code"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-size: 10pt;font-family: sans-serif;font-size: 10pt;"><span t-field="o.account_name"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;font-family: sans-serif;font-size: 10pt;"><span t-field="o.partner_name"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: center;font-family: sans-serif;font-size: 10pt;"><span t-field="o.account_level"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: center;font-family: sans-serif;font-size: 10pt;"><span t-field="o.account_nature"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: right;font-family: sans-serif;font-size: 10pt;"><span t-field="o.initial_balance"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: right;font-family: sans-serif;font-size: 10pt;"><span t-field="o.debit"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: right;font-family: sans-serif;font-size: 10pt;"><span t-field="o.credit"/></td>
+                            <td style="border-width: thin;padding: 0px;border-style: dotted;border-color: gray;text-align: right;font-family: sans-serif;font-size: 10pt;"><span t-field="o.ending_balance"/></td>
+
+                        </tr>
+                    </tbody>
+                </t>
+            </table>
+        </div>
+    </t>
+</template>
+
+</data>
+</openerp>

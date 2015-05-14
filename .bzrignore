@@ -1,0 +1,6 @@
+account_mx_reports_view.xml~
+*.pyc
+__init__.pyc
+account_mx_reports.pyc
+account_mx_reports.py~
+*.sh

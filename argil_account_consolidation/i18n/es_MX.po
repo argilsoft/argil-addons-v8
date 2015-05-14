@@ -1,0 +1,147 @@
+# Translation of OpenERP Server.
+# This file contains the translation of the following modules:
+# 	* argil_account_consolidation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenERP Server 7.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-09-13 02:15+0000\n"
+"PO-Revision-Date: 2014-09-17 14:10-0700\n"
+"Last-Translator: Israel Cruz Argil <israel.cruz@argil.mx>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: es_MX\n"
+"X-Generator: Poedit 1.6.9\n"
+
+#. module: argil_account_consolidation
+#: field:account.account,argil_balance_all:0
+msgid "Balance All"
+msgstr "Saldo Final Acumulado"
+
+#. module: argil_account_consolidation
+#: model:ir.actions.act_window,name:argil_account_consolidation.action_account_chart_argil
+#: model:ir.actions.act_window,name:argil_account_consolidation.action_account_tree_argil
+#: model:ir.ui.menu,name:argil_account_consolidation.menu_action_account_tree2_argil
+msgid "Chart of Accounts"
+msgstr "Plan Contable Extendido"
+
+#. module: argil_account_consolidation
+#: view:account.account:0
+msgid "Accumulated Balance"
+msgstr "Saldo Final Acumulado"
+
+#. module: argil_account_consolidation
+#: view:account.chart_argil:0
+msgid "Open Charts"
+msgstr "Abrir Plan"
+
+#. module: argil_account_consolidation
+#: code:addons/argil_account_consolidation/account_move_line.py:107
+#, python-format
+msgid ""
+"You have not supplied enough arguments to compute the initial balance, "
+"please select a period and a journal in the context."
+msgstr ""
+"No ha dado suficientes parámetros para calcular el Saldo Inicial, por favor "
+"seleccione un periodo y un diario en e contexto."
+
+#. module: argil_account_consolidation
+#: view:account.chart_argil:0
+msgid "(If you do not select Fiscal year it will take all open fiscal years)"
+msgstr ""
+"(Si no selecciona un Ejercicio Fiscal entonces se tomarán todos los abiertos)"
+
+#. module: argil_account_consolidation
+#: model:ir.model,name:argil_account_consolidation.model_account_move_line
+msgid "Journal Items"
+msgstr "Elementos diario"
+
+#. module: argil_account_consolidation
+#: view:account.account:0
+msgid "Chart of accounts"
+msgstr "Plan Contable Extendido"
+
+#. module: argil_account_consolidation
+#: field:account.chart_argil,target_move:0
+msgid "Target Moves"
+msgstr "Movimientos destino"
+
+#. module: argil_account_consolidation
+#: view:account.chart_argil:0
+msgid "Account charts"
+msgstr "Plan de Cuentas"
+
+#. module: argil_account_consolidation
+#: code:addons/argil_account_consolidation/account_move_line.py:107
+#, python-format
+msgid "Warning!"
+msgstr "Advertencia!"
+
+#. module: argil_account_consolidation
+#: model:ir.model,name:argil_account_consolidation.model_account_account
+msgid "Account"
+msgstr "Cuenta"
+
+#. module: argil_account_consolidation
+#: view:account.account:0
+msgid "Period Balance"
+msgstr "Saldo del Periodo"
+
+#. module: argil_account_consolidation
+#: selection:account.chart_argil,target_move:0
+msgid "All Posted Entries"
+msgstr "Todos los asientos asentados"
+
+#. module: argil_account_consolidation
+#: help:account.chart_argil,fiscalyear:0
+msgid "Keep empty for all open fiscal years"
+msgstr "Deje vacío para todos los Ejercicios Fiscales"
+
+#. module: argil_account_consolidation
+#: field:account.chart_argil,period_from:0
+msgid "Start period"
+msgstr "Periodo Inicial"
+
+#. module: argil_account_consolidation
+#: view:account.account:0 field:account.account,argil_initial_balance:0
+msgid "Initial Balance"
+msgstr "Saldo Inicial"
+
+#. module: argil_account_consolidation
+#: field:account.chart_argil,period_to:0
+msgid "End period"
+msgstr "Periodo Final"
+
+#. module: argil_account_consolidation
+#: model:ir.model,name:argil_account_consolidation.model_account_chart_argil
+msgid "Account chart special"
+msgstr "Plan de Cuentas especial"
+
+#. module: argil_account_consolidation
+#: field:account.chart_argil,fiscalyear:0
+msgid "Fiscal year"
+msgstr "Ejercicio Fiscal"
+
+#. module: argil_account_consolidation
+#: view:account.chart_argil:0
+msgid "Periods"
+msgstr "Periodos"
+
+#. module: argil_account_consolidation
+#: view:account.chart_argil:0
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: argil_account_consolidation
+#: view:account.chart_argil:0
+msgid "or"
+msgstr "o"
+
+#. module: argil_account_consolidation
+#: selection:account.chart_argil,target_move:0
+msgid "All Entries"
+msgstr "Todas"

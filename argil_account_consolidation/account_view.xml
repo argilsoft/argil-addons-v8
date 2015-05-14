@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_account_tree_argil" model="ir.ui.view">
+            <field name="name">account.account_argil.tree</field>
+            <field name="model">account.account</field>
+            <field name="field_parent">child_id</field>
+            <field name="arch" type="xml">
+                <tree colors="blue:type == 'view';black:type in ('other','receivable','payable','consolidation');gray:type == 'closed'" string="Chart of accounts" toolbar="1" >
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="argil_initial_balance" string="Initial Balance"/>
+                    <field name="debit"/>
+                    <field name="credit"/>
+                    <field name="balance" string="Period Balance"/>
+                    <field name="argil_balance_all" string="Accumulated Balance"/>
+                    <field name="company_currency_id"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="type"/>
+                    <field name="parent_id" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_account_tree_argil" model="ir.actions.act_window">
+            <field name="name">Chart of Accounts</field>
+            <field name="res_model">account.account</field>
+            <field name="view_type">tree</field>
+            <field name="view_id" ref="view_account_tree_argil"/>
+            <field name="domain">[('parent_id','=',False)]</field>
+        </record>
+    
+    </data>
+</openerp>

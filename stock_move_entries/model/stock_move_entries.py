@@ -90,10 +90,10 @@ class stock_quant(osv.osv):
 
     def _create_account_move_line(self, cr, uid, quants, move, credit_account_id, debit_account_id, journal_id, context=None):
         #group quants by cost
-        print "· · · · · · · · · · · · · · ·"
-        print "move.id: ", move.id
-        print "move.product: (%s) %s" % (move.product_id.id, move.product_id.name)
-        print "move.product_uom_qty: ", move.product_uom_qty
+        #print "· · · · · · · · · · · · · · ·"
+        #print "move.id: ", move.id
+        #print "move.product: (%s) %s" % (move.product_id.id, move.product_id.name)
+        #print "move.product_uom_qty: ", move.product_uom_qty
         quant_cost_qty = {}
         for quant in quants:
             if quant_cost_qty.get(quant.cost):
@@ -104,10 +104,10 @@ class stock_quant(osv.osv):
         stock_move_obj = self.pool.get('stock.move')
         for cost, qty in quant_cost_qty.items():
             move_lines = self._prepare_account_move_line(cr, uid, move, qty, cost, credit_account_id, debit_account_id, context=context)
-            print "move_lines (before): ", move_lines
+            #print "move_lines (before): ", move_lines
             move_lines[0][2].update({'stock_move_id' : move.id})
             move_lines[1][2].update({'stock_move_id' : move.id})
-            print "move_lines (after): ", move_lines                        
+            #print "move_lines (after): ", move_lines                        
             period_id = context.get('force_period', self.pool.get('account.period').find(cr, uid, context=context)[0])
             move_id = move_obj.create(cr, uid, {'journal_id': journal_id,
                                       'line_id': move_lines,

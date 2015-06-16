@@ -74,6 +74,10 @@ class account_monthly_balance_wizard(osv.osv_memory):
         'company_id'        : fields.many2one('res.company', string='Company', readonly=True),                
         'period_id'         : fields.many2one('account.period', 'Periodo', required=True),
         'partner_breakdown' : fields.boolean('Desglosar Empresas'),
+        'output'            : fields.selection([
+                                            ('list_view','Vista Lista'), 
+                                            ('pdf','PDF'), 
+                                        ], 'Salida',required=True),
         }
     
     def _get_account(self, cr, uid, context=None):
@@ -84,6 +88,7 @@ class account_monthly_balance_wizard(osv.osv_memory):
     _defaults = {
             'company_id'        : lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.monthly_balance',context=c),
             'chart_account_id'  : _get_account,
+            'output'            : 'list_view',
     }
 
 
@@ -196,7 +201,7 @@ DECLARE
 	_result3 record;
 
 	_cursor4 CURSOR FOR 
-		SELECT 	id, create_uid, create_date, account_id, account_code, account_sign, period_name,
+		SELECT 	id, create_uid, create_date, account_id, account_code, account_sign, period_name, period_id,
 			order_code, account_name, account_level, account_type, create_date, 
 			account_user_type, partner_breakdown, company_name
 		from balanza_mensual
@@ -314,7 +319,14 @@ BEGIN
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			where line.state='valid' 
 			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
-			and line.period_id in (select id from account_period where name = _period_name))::float
+			and line.period_id in (select id from account_period where name = _period_name))::float,
+        period_id = (select distinct line.period_id
+                from account_move_line line
+				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
+			     where line.state='valid' 
+			     and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
+			     and line.period_id in (select id from account_period where name = _period_name)
+                 limit 1)
 		
 		
 		where balanza_mensual.id=_record3.id;
@@ -332,14 +344,14 @@ BEGIN
 
 
 			insert into balanza_mensual
-			(id, create_uid, create_date, account_id, account_code, 
+			(id, create_uid, create_date, account_id, account_code, period_id,
 				order_code, account_name, account_level, account_type, account_user_type, 
 				account_sign, partner_breakdown, period_name, company_name, partner_id,
 				initial_balance, debit, credit
 				)
 			
 			select 
-			(_record4.id * 10000 + line.partner_id) id, x_uid::integer, _record4.create_date, _record4.id, _record4.account_code, 
+			(_record4.id * 10000 + line.partner_id) id, x_uid::integer, _record4.create_date, _record4.id, _record4.account_code, _record4.period_id,
 			_record4.order_code, _record4.account_name, _record4.account_level + 1, _record4.account_type, _record4.account_user_type, 
 			_record4.account_sign, _record4.partner_breakdown, _record4.period_name, _record4.company_name, line.partner_id,
 			
@@ -367,9 +379,79 @@ BEGIN
 				and line.account_id = _record4.id
 				and line.period_id in (select id from account_period where name = _period_name)
 				group by _record4.id, _record4.account_code, _record4.order_code,
-			_record4.account_name, _record4.account_level + 1, _record4.account_type, _record4.account_user_type,
-			_record4.partner_breakdown, _record4.period_name, _record4.company_name, line.partner_id;
-						
+                _record4.account_name, _record4.account_level + 1, _record4.account_type, _record4.account_user_type,
+                _record4.partner_breakdown, _record4.period_name, _record4.company_name, line.partner_id;
+
+
+		------------
+		------------
+		
+			insert into balanza_mensual
+			(id, create_uid, create_date, account_id, account_code, period_id,
+				order_code, account_name, account_level, account_type, account_user_type, 
+				account_sign, partner_breakdown, period_name, company_name, debit, credit, 
+				partner_id, initial_balance
+				)
+			
+			select 
+			(_record4.id * 10000 + xline.partner_id) id, x_uid::integer, _record4.create_date, _record4.id, _record4.account_code, _record4.period_id,
+			_record4.order_code, _record4.account_name, _record4.account_level + 1, _record4.account_type, _record4.account_user_type, 
+			_record4.account_sign, _record4.partner_breakdown, _record4.period_name, _record4.company_name, 0.0, 0.0,
+			
+			xline.partner_id, (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00))::float
+			from account_move_line xline
+				inner join account_journal xjournal on xline.journal_id=xjournal.id and 
+				(CASE WHEN _period_month = 1 and not _period_flag_00 THEN xjournal.type <> 'situation' ELSE 1=1 END)
+			where xline.state='valid' 
+			and xline.account_id = _record4.id
+			and xline.partner_id not in 
+				(select distinct line.partner_id
+				from account_move_line line
+					inner join account_journal journal on line.journal_id=journal.id and journal.type <> 'situation'
+				where line.state='valid' and line.partner_id is not null
+				and line.account_id = _record4.id
+				and line.period_id in (select id from account_period where name = _period_name)
+				)					
+			and xline.period_id in 
+					    (select xperiodo.id from account_period xperiodo 
+					    where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
+					    and xperiodo.name < _period_name
+					    )				
+			group by xline.partner_id
+            having (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00)) <> 0.0;
+
+		------------
+		------------
+        ------------
+		
+			insert into balanza_mensual
+			(id, create_uid, create_date, account_id, account_code, period_id,
+				order_code, account_name, account_level, account_type, account_user_type, 
+				account_sign, partner_breakdown, period_name, company_name, debit, credit, 
+				partner_id, initial_balance
+				)
+			
+			select 
+			(_record4.id * 10000 + xline.partner_id) id, x_uid::integer, _record4.create_date, _record4.id, _record4.account_code, _record4.period_id,
+			_record4.order_code, _record4.account_name, _record4.account_level + 1, _record4.account_type, _record4.account_user_type, 
+			_record4.account_sign, _record4.partner_breakdown, _record4.period_name, _record4.company_name, 0.0, 0.0,
+			
+			xline.partner_id, (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00))::float
+			from account_move_line xline
+				inner join account_journal xjournal on xline.journal_id=xjournal.id and 
+				(CASE WHEN _period_month = 1 and not _period_flag_00 THEN xjournal.type <> 'situation' ELSE 1=1 END)
+			where xline.state='valid' 
+			and xline.account_id = _record4.id
+			and xline.partner_id is null	
+			and xline.period_id in 
+					    (select xperiodo.id from account_period xperiodo 
+					    where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
+					    and xperiodo.name < _period_name
+					    )				
+			group by xline.partner_id
+            having (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00)) <> 0.0;
+
+
 		END LOOP;
 
 	END IF;
@@ -384,17 +466,21 @@ BEGIN
 		moves = not (initial_balance = 0.0 and debit = 0.0 and credit = 0.0);
 
 		
-	
+	delete from account_monthly_balance_header where create_uid = x_uid;
+    insert into account_monthly_balance_header 
+    (id, create_uid,  create_date, write_date, write_uid, period_name, date)
+    values
+    (x_uid, x_uid, LOCALTIMESTAMP, LOCALTIMESTAMP, x_uid, _period_name, LOCALTIMESTAMP);
 	
 	delete from account_monthly_balance where create_uid = x_uid;
 	
 	insert into account_monthly_balance
-	(create_uid, create_date, write_date, write_uid, company_name, period_name,
+	(create_uid, create_date, write_date, write_uid, company_name, period_name, header_id,
 	--fiscalyear_id, period_id, 
 	account_id, account_code, account_name, account_level, account_type, account_internal_type, account_nature, account_sign,
 	initial_balance, debit, credit, balance, ending_balance, moves, partner_id, partner_name, order_code, period_id)
 	select 
-		x_uid as create_uid, LOCALTIMESTAMP as create_date, LOCALTIMESTAMP as write_date, x_uid as write_uid, company_name, period_name,
+		x_uid as create_uid, LOCALTIMESTAMP as create_date, LOCALTIMESTAMP as write_date, x_uid as write_uid, company_name, period_name, x_uid,
 		account_id, account_code, account_name, account_level, account_type, account_user_type, account_nature, account_sign,
 		initial_balance, debit, credit, balance, ending_balance,
 		moves, partner.id, partner.name, order_code, period_id
@@ -425,22 +511,42 @@ LANGUAGE 'plpgsql';
                         _('Error en script!'),
                         _('No se pudo generar la balanza de comprobacion, por favor verifique su configuracion y vuelva a intentarlo'))
 
+            if params.output == 'list_view': 
+                values = self.pool.get('account.monthly_balance').search(cr, uid, [('create_uid', '=', uid)])
 
-            values = self.pool.get('account.monthly_balance').search(cr, uid, [('create_uid', '=', uid)])
+                value = {
+                    'domain'    : "[('id','in', ["+','.join(map(str,values))+"])]",
+                    'name'      : _('Balanza de Comprobacion'),
+                    'view_type' : 'form',
+                    'view_mode' : 'tree,form',
+                    'res_model' : 'account.monthly_balance',
+                    'view_id'   : False,
+                    'type'      : 'ir.actions.act_window'
+                }
+                return value
+            elif params.output == 'pdf':
+                #print "[uid]: ", [uid]
+                return self.pool['report'].get_action(cr, uid, [uid], 'argil_mx_accounting_reports_consol.report_balanza_mensual', context=context)
 
-        value = {
-            'domain'    : "[('id','in', ["+','.join(map(str,values))+"])]",
-            'name'      : _('Balanza de Comprobacion'),
-            'view_type' : 'form',
-            'view_mode' : 'tree,form',
-            'res_model' : 'account.monthly_balance',
-            'view_id'   : False,
-            'type'      : 'ir.actions.act_window'
-        }
-
-        return value
+        return
 
 account_monthly_balance_wizard()
+
+
+class account_monthly_balance_header(osv.osv):
+    _name = "account.monthly_balance_header"
+    _description = "Header Balanza Mensual"
+
+    _columns = {
+        'create_uid'  : fields.many2one('res.users', 'Usuario', readonly=True),
+        'period_name' : fields.char('Periodo', size=64, readonly=True),
+        'date'        : fields.date('Fecha', readonly=True),
+        'line_ids'    : fields.one2many('account.monthly_balance', 'header_id', string='Lines'),
+    }
+
+    _order = 'period_name asc'
+
+account_monthly_balance_header()
 
 
 class account_monthly_balance(osv.osv):
@@ -448,7 +554,8 @@ class account_monthly_balance(osv.osv):
     _description = "Balanza Mensual"
 
     _columns = {
-        'company_name'       : fields.char('Compañia', size=64, readonly=True),
+        'header_id'         : fields.many2one('account.monthly_balance_header', 'Header', readonly=True),        
+        'company_name'      : fields.char('Compañia', size=64, readonly=True),
         'period_name'       : fields.char('Periodo', size=64, readonly=True),                
         #'fiscalyear_id'     : fields.many2one('account.fiscalyear', 'Periodo Anual', readonly=True),
         'period_id'         : fields.many2one('account.period', 'Periodo', readonly=True),
@@ -460,11 +567,11 @@ class account_monthly_balance(osv.osv):
         'account_internal_type'      : fields.char('Tipo Interno', size=64, readonly=True),
         'account_nature'    : fields.char('Naturaleza', size=64, readonly=True),
         'account_sign'      : fields.integer('Signo', readonly=True),
-        'initial_balance'   : fields.float('Saldo Inicial', readonly=True),
-        'debit'             : fields.float('Cargos', readonly=True),
-        'credit'            : fields.float('Abonos', readonly=True),
-        'balance'           : fields.float('Saldo del Periodo', readonly=True),
-        'ending_balance'    : fields.float('Saldo Acumulado', readonly=True),
+        'initial_balance'   : fields.float('Saldo Inicial', readonly=True, digits_compute=dp.get_precision('Account')),
+        'debit'             : fields.float('Cargos', readonly=True, digits_compute=dp.get_precision('Account')),
+        'credit'            : fields.float('Abonos', readonly=True, digits_compute=dp.get_precision('Account')),
+        'balance'           : fields.float('Saldo del Periodo', readonly=True, digits_compute=dp.get_precision('Account')),
+        'ending_balance'    : fields.float('Saldo Acumulado', readonly=True, digits_compute=dp.get_precision('Account')),
         'moves'             : fields.boolean('Con Movimientos', readonly=True),
         'create_uid'        : fields.many2one('res.users', 'Created by', readonly=True),
         'partner_id'        : fields.many2one('res.partner', 'Empresa', readonly=True, required=False),
@@ -475,412 +582,36 @@ class account_monthly_balance(osv.osv):
     _order = 'order_code, partner_name asc'
 
 account_monthly_balance()
-
                     
-"""
-# Clase que define la estructura y vistas usadas para obtener la Balanza de Comprobación Anual
-class account_annual_balance(osv.osv):
-    _name = "account.annual_balance"
-    _description = "Balanza de Comprobacion Anual"
-    _auto = False
-#    _log_access = True
+
+class account_account_lines_header(osv.osv):
+    _name = "account.account_lines_header"
 
     _columns = {
-        'fiscalyear_id'    : fields.many2one('account.fiscalyear', 'Periodo Anual', readonly=True),
-        'account_id'        : fields.many2one('account.account', 'Cuenta Contable', readonly=True),
-        'fiscalyear': fields.char('Periodo Fiscal', size=64),
-        'account_code': fields.char('Codigo', size=64),
-        'account_name': fields.char('Descripcion', size=250),
-        'account_level': fields.integer('Nivel'),
-        'account_type': fields.char('Tipo', size=64),
-        'account_nature': fields.char('Naturaleza', size=64),
-        'account_sign': fields.integer('Signo'),
-        'initial_balance': fields.float('Saldo Inicial'),
-        'debit1': fields.float('Cargo Enero'),
-        'credit1': fields.float('Abono Enero'),
-        'balance1': fields.float('SF Enero'),
-        'debit2': fields.float('Cargo Febrero'),
-        'credit2': fields.float('Abono Febrero'),
-        'balance2': fields.float('SF Febrero'),
-        'debit3': fields.float('Cargo Marzo'),
-        'credit3': fields.float('Abono Marzo'),
-        'balance3': fields.float('SF Marzo'),
-        'debit4': fields.float('Cargo Abril'),
-        'credit4': fields.float('Abono Abril'),
-        'balance4': fields.float('SF Abril'),
-        'debit5': fields.float('Cargo Mayo'),
-        'credit5': fields.float('Abono Mayo'),
-        'balance5': fields.float('SF Mayo'),
-        'debit6': fields.float('Cargo Junio'),
-        'credit6': fields.float('Abono Junio'),
-        'balance6': fields.float('SF Junio'),
-        'debit7': fields.float('Cargo Julio'),
-        'credit7': fields.float('Abono Julio'),
-        'balance7': fields.float('SF Julio'),
-        'debit8': fields.float('Cargo Agosto'),
-        'credit8': fields.float('Abono Agosto'),
-        'balance8': fields.float('SF Agosto'),
-        'debit9': fields.float('Cargo Septiembre'),
-        'credit9': fields.float('Abono Septiembre'),
-        'balance9': fields.float('SF Septiembre'),
-        'debit10': fields.float('Cargo Octubre'),
-        'credit10': fields.float('Abono Octubre'),
-        'balance10': fields.float('SF Octubre'),
-        'debit11': fields.float('Cargo Noviembre'),
-        'credit11': fields.float('Abono Noviembre'),
-        'balance11': fields.float('SF Noviembre'),
-        'debit12': fields.float('Cargo Diciembre'),
-        'credit12': fields.float('Abono Diciembre'),
-        'balance12': fields.float('SF Diciembre'),
-        'debit13': fields.float('Cargo Ajustes'),
-        'credit13': fields.float('Abono Ajustes'),
-        'balance13': fields.float('SF Ajustes'),
-        'moves1': fields.boolean('Ene'),
-        'moves2': fields.boolean('Feb'),
-        'moves3': fields.boolean('Mar'),
-        'moves4': fields.boolean('Abr'),
-        'moves5': fields.boolean('May'),
-        'moves6': fields.boolean('Jun'),
-        'moves7': fields.boolean('Jul'),
-        'moves8': fields.boolean('Ago'),
-        'moves9': fields.boolean('Sep'),
-        'moves10': fields.boolean('Oct'),
-        'moves11': fields.boolean('Nov'),
-        'moves12': fields.boolean('Dic'),
-        'moves13': fields.boolean('Aju'),
-        'period_id_start' : fields.many2one('account.period', 'Periodo Inicio', readonly=True),
-        'period_id_stop'  : fields.many2one('account.period', 'Periodo Final', readonly=True),
+        'create_uid'      : fields.many2one('res.users', 'Usuario', readonly=True),
+        'account_id'      : fields.many2one('account.account', 'Cuenta Contable', readonly=True),
+        'period_id_start' : fields.many2one('account.period', 'Periodo Inicial', readonly=True),
+        'period_id_end'   : fields.many2one('account.period', 'Periodo Final', readonly=True),
+        'partner_id'      : fields.many2one('res.partner', 'Empresa', readonly=True),
+        'product_id'      : fields.many2one('product.product', 'Producto', readonly=True),
+        'debit_sum'       : fields.float('Cargos', readonly=True, digits_compute=dp.get_precision('Account')),
+        'credit_sum'      : fields.float('Abonos', readonly=True, digits_compute=dp.get_precision('Account')),
+        'line_ids'        : fields.one2many('account.account_lines', 'header_id', string='Lines'),
+
     }
 
-    _order = 'account_code'
-    
-    def init(self, cr):
-        tools.drop_view_if_exists(cr, 'account_annual_balance')
-        tools.drop_view_if_exists(cr, 'account_annual_balance_prev')
-        tools.drop_view_if_exists(cr, 'account_annual_balance_base')
-        cr.execute(
-        " # Aqui deben ir 3 comillas, se queda una porqu ese comento el codigo
-           -- Función que devuelve los IDs de las cuentas hijo de la cuenta especificada
-            --drop function if exists f_account_child_ids(account_id integer);
-            CREATE OR REPLACE FUNCTION f_account_child_ids(account_id integer)
-            RETURNS TABLE(id integer) AS
-            $$
 
-            WITH RECURSIVE account_ids(id) AS (
-                SELECT id FROM account_account WHERE parent_id = $1
-              UNION ALL
-                select parent_id as id from account_account_consol_rel where child_id = $1
-              UNION ALL
-                SELECT cuentas.id FROM account_ids, account_account cuentas
-                WHERE cuentas.parent_id = account_ids.id
-                )
-            SELECT id FROM account_ids 
-            union
-            select $1 id
-            order by id;
-            $$ LANGUAGE 'sql';
-
-            /*
-            select f_account_child_ids(12);
-
-            */
-
-
-            CREATE OR REPLACE view account_annual_balance_base as
-
-            select account.id * 10000 + fiscalyear.id id,
-            fiscalyear.id fiscalyear_id, account.id account_id,
-            fiscalyear.name fiscalyear, account.code account_code, account.name account_name, account.level account_level, 
-            account_type.name account_type,  
-            case account_type.sign
-            when 1 then 'Deudora'
-            else 'Acreedora'
-            end account_nature,
-            account_type.sign account_sign,
-
-            account_type.sign * (select COALESCE(sum(debit), 0.00) - COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type='situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 1
-            ) initial_balance,
-
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 1) debit1,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 1) credit1,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =2) debit2,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 2) credit2,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =3) debit3,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 3) credit3,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =4) debit4,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 4) credit4,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =5) debit5,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 5) credit5,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =6) debit6,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 6) credit6,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =7) debit7,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 7) credit7,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =8) debit8,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 8) credit8,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =9) debit9,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 9) credit9,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =10) debit10,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 10) credit10,
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) =11) debit11,
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and date_part('month', period.date_start) = 11) credit11,
-
-
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and period.name like '12%') --date_part('month', period.date_start) =12)
-             debit12,
-
-
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and period.name like '12%') --date_part('month', period.date_start) = 12) 
-            credit12,
-
-             (select COALESCE(sum(debit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and period.name like '13%') --date_part('month', period.date_start) =12)
-             debit13,
-
-
-             (select COALESCE(sum(credit), 0.00) 
-            from account_move_line line, account_journal journal, account_period period
-            where line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-            and line.journal_id = journal.id and journal.type<>'situation'
-            and line.period_id = period.id and period.fiscalyear_id = fiscalyear.id
-            and period.name like '13%') --date_part('month', period.date_start) = 12) 
-             credit13
-
-
-
-            from account_account account, account_account_type account_type, account_fiscalyear fiscalyear
-            where account.user_type=account_type.id and account.active = True
-            order by fiscalyear.name, account.code;
-
-
-            CREATE OR REPLACE view account_annual_balance_prev as
-            select id, 
-            fiscalyear_id, account_id,
-            fiscalyear, account_code, account_name, account_level, account_type,  account_nature, account_sign, 
-            initial_balance,
-            debit1, credit1, 
-            (initial_balance + account_sign * (debit1 - credit1)) balance1,
-            debit2, credit2,
-            (initial_balance + account_sign * (	debit1 + debit2 - 
-                            credit1 - credit2)) balance2,
-            debit3, credit3,
-            (initial_balance + account_sign * (	debit1 + debit2 + debit3 - 
-                            credit1 - credit2 - credit3)) balance3,
-            debit4, credit4,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 - 
-                            credit1 - credit2- credit3 - credit4)) balance4,
-            debit5, credit5,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 - 
-                            credit1 - credit2- credit3 - credit4 - credit5)) balance5,
-
-            debit6, credit6,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6)) balance6,
-            debit7, credit7,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7)) balance7,
-            debit8, credit8,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 + debit8 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7 - credit8)) balance8,
-            debit9, credit9,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 + debit8 + debit9 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7 - credit8 - credit9)) balance9,
-            debit10, credit10,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 + debit8 + debit9 + debit10 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7 - credit8 - credit9 - credit10)) balance10,
-            debit11, credit11,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 + debit8 + debit9 + debit10 + debit11 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7 - credit8 - credit9 - credit10 - credit11)) balance11,
-            debit12, credit12,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 + debit8 + debit9 + debit10 + debit11 + debit12 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7 - credit8 - credit9 - credit10 - credit11 - credit12)) balance12,
-
-	    debit13, credit13,
-            (initial_balance + account_sign * (	debit1 + debit2 +debit3 + debit4 + debit5 + debit6 + debit7 + debit8 + debit9 + debit10 + debit11 + debit12 + debit13 - 
-                            credit1 - credit2- credit3 - credit4 - credit5 - credit6- credit7 - credit8 - credit9 - credit10 - credit11 - credit12 - credit13)) balance13
-
-
-            from account_annual_balance_base;
-
-            CREATE OR REPLACE view account_annual_balance as
-            select id, fiscalyear_id, account_id,
-            fiscalyear, account_code, account_name, account_level, account_type, account_nature, account_sign, initial_balance,
-            debit1, credit1, balance1,
-            debit2, credit2, balance2,
-            debit3, credit3, balance3,
-            debit4, credit4, balance4,
-            debit5, credit5, balance5,
-            debit6, credit6, balance6,
-            debit7, credit7, balance7,
-            debit8, credit8, balance8,
-            debit9, credit9, balance9,
-            debit10, credit10, balance10,
-            debit11, credit11, balance11,
-            debit12, credit12, balance12,
-            debit13, credit13, balance13,
-            (abs(initial_balance) + abs(credit1) + abs(debit1) <> 0.0) as moves1,
-            (abs(balance1) + abs(credit2) + abs(debit2)<>0.0) as moves2,
-            (abs(balance2) + abs(credit3) + abs(debit3)<>0.0) as moves3,
-            (abs(balance3) + abs(credit4) + abs(debit4)<>0.0) as moves4,
-            (abs(balance4) + abs(credit5) + abs(debit5)<>0.0) as moves5,
-            (abs(balance5) + abs(credit6) + abs(debit6)<>0.0) as moves6,
-            (abs(balance6) + abs(credit7) + abs(debit7)<>0.0) as moves7,
-            (abs(balance7) + abs(credit8) + abs(debit8)<>0.0) as moves8,
-            (abs(balance8) + abs(credit9) + abs(debit9)<>0.0) as moves9,
-            (abs(balance9) + abs(credit10) + abs(debit10)<>0.0) as moves10,
-            (abs(balance10) + abs(credit11) + abs(debit11)<>0.0) as moves11,
-            (abs(balance11) + abs(credit12) + abs(debit12)<>0.0) as moves12,
-            (abs(balance12) + abs(credit13) + abs(debit13)<>0.0) as moves13,
-            
-            (select _inicial.id from account_period _inicial 
-                where _inicial.fiscalyear_id = account_annual_balance_prev.fiscalyear_id and _inicial.special order by _inicial.id asc limit 1) period_id_start,
-
-            (select _final.id from account_period _final 
-                where _final.fiscalyear_id = account_annual_balance_prev.fiscalyear_id and _final.special order by _final.id desc limit 1) period_id_stop
-
-            from account_annual_balance_prev;
-
-        ")
-account_annual_balance()
-"""
 
 
 class account_account_lines(osv.osv):
     _name = "account.account_lines"
     _description = "Auxiliar de Cuentas"
-#    _log_access = True
 
     _columns = {
-        'name'              : fields.char('No se usa', size=64, readonly=True),
-        'move_id'           : fields.many2one('account.move', 'Poliza', readonly=True),
+        'header_id'         : fields.many2one('account.account_lines_header', 'Header', readonly=True),        
+        'name'              : fields.char('Concepto Partida', size=64, readonly=True),
+        'ref'               : fields.char('Referencia Partida', size=64, readonly=True),
+        'move_id'           : fields.many2one('account.move', 'Póliza', readonly=True),
         'user_id'           : fields.many2one('res.users', 'Usuario', readonly=True),
         'journal_id'        : fields.many2one('account.journal', 'Diario', readonly=True),
         'period_id'         : fields.many2one('account.period', 'Periodo', readonly=True),
@@ -888,9 +619,9 @@ class account_account_lines(osv.osv):
         'account_id'        : fields.many2one('account.account', 'Cuenta Contable', readonly=True),
         'account_type_id'   : fields.many2one('account.account.type', 'Tipo Cuenta', readonly=True),
 
-        'move_date'         : fields.date('Fecha Poliza', readonly=True),
-        'move_name'         : fields.char('Poliza No.', size=120, readonly=True),
-        'move_ref'          : fields.char('Referencia', size=120, readonly=True),
+        'move_date'         : fields.date('Fecha Póliza', readonly=True),
+        'move_name'         : fields.char('Póliza No.', size=120, readonly=True),
+        'move_ref'          : fields.char('Referencia Póliza', size=120, readonly=True),
         'period_name'       : fields.char('xPeriodo Mensual', size=120, readonly=True),
         'fiscalyear_name'   : fields.char('xPeriodo Anual', size=120, readonly=True),
         'account_code'      : fields.char('Codigo Cuenta', size=60, readonly=True),
@@ -899,15 +630,15 @@ class account_account_lines(osv.osv):
         'account_type'      : fields.char('xTipo Cuenta', size=60, readonly=True),
         'account_sign'      : fields.integer('Signo', readonly=True),
         'journal_name'      : fields.char('xDiario', size=60, readonly=True),
-        'initial_balance'   : fields.float('Saldo Inicial', readonly=True),
-        'debit'             : fields.float('Cargos', readonly=True),
-        'credit'            : fields.float('Abonos', readonly=True),
-        'ending_balance'    : fields.float('Saldo Final', readonly=True),
+        'initial_balance'   : fields.float('Saldo Inicial', readonly=True, digits_compute=dp.get_precision('Account')),
+        'debit'             : fields.float('Cargos', readonly=True, digits_compute=dp.get_precision('Account')),
+        'credit'            : fields.float('Abonos', readonly=True, digits_compute=dp.get_precision('Account')),
+        'ending_balance'    : fields.float('Saldo Final', readonly=True, digits_compute=dp.get_precision('Account')),
         'partner_id'        : fields.many2one('res.partner', 'Empresa', readonly=True),
         'product_id'        : fields.many2one('product.product', 'Producto', readonly=True),
         'qty'               : fields.float('Cantidad', readonly=True),
         'sequence'          : fields.integer('Seq', readonly=True),
-        'amount_currency'   : fields.float('Monto M.E.', readonly=True, help="Monto en Moneda Extranjera"),
+        'amount_currency'   : fields.float('Monto M.E.', readonly=True, help="Monto en Moneda Extranjera", digits_compute=dp.get_precision('Account')),
         'currency_id'       : fields.many2one('res.currency', 'Moneda', readonly=True),
     }
 
@@ -928,11 +659,20 @@ class account_account_lines_wizard(osv.osv_memory):
         'account_id'        : fields.many2one('account.account', 'Cuenta Contable'),
         'partner_id'        : fields.many2one('res.partner', 'Empresa'),
         'product_id'        : fields.many2one('product.product', 'Producto'),
+        'output'          : fields.selection([
+                                    ('list_view','Vista Lista'), 
+                                    ('pdf','PDF'), 
+                                ], 'Salida',required=True),
+        
         }
 
+    
     _defaults = {
-            'company_id': lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.account_lines',context=c),
+            'company_id'        : lambda self,cr,uid,c: self.pool.get('res.company')._company_default_get(cr, uid, 'account.monthly_balance',context=c),
+            'output'            : 'list_view',
     }
+    
+    
     
     def button_get_info(self, cr, uid, ids, context=None):
         
@@ -970,6 +710,7 @@ class account_account_lines_wizard(osv.osv_memory):
             write_date date,
             write_uid integer,
             name varchar(64),
+            ref varchar(64),
             move_id integer,
             user_id integer,
             journal_id integer,
@@ -1066,7 +807,8 @@ class account_account_lines_wizard(osv.osv_memory):
 
 
 	            create table hesatec_mx_auxiliar_borrame""" + str(uid) + """ AS 
-	            select move_line.id * 1000 + period.id as id, move.name as name, move.date move_date, move.name move_name, move.ref move_ref, 
+	            select move_line.id * 1000 + period.id as id, move_line.name as name, move_line.ref as ref,
+                move.date move_date, move.name move_name, move.ref move_ref, 
                 period.name period_name, 
                 --fiscalyear.name fiscalyear_name, 
                 account.code account_code, account.name account_name, account.level account_level,
@@ -1120,6 +862,7 @@ class account_account_lines_wizard(osv.osv_memory):
                     current_date write_date, 
 			         zz.user_id write_uid, 
                      zz.name, 
+                     zz.ref,
                      zz.move_id, 
                      zz.user_id, 
                      zz.journal_id, 
@@ -1160,18 +903,33 @@ class account_account_lines_wizard(osv.osv_memory):
             #print "sql2: ", sql2
             
             sql3 = """
-                delete from account_account_lines;
+                delete from account_account_lines_header where id=""" + str(uid) + """;
+                insert into account_account_lines_header
+                (id, create_uid, create_date, write_date, write_uid, 
+                account_id, period_id_start, period_id_end, partner_id, product_id)
+                values
+                (""" + str(uid) + """, """ + str(uid) + """, LOCALTIMESTAMP, 
+                LOCALTIMESTAMP, """ + str(uid) + """, 
+                """ + str(params.account_id.id) + """, 
+                """ + str(params.period_id_start.id) + """, 
+                """ + str(params.period_id_stop.id) + """,
+                """ + (params.partner_id and str(params.partner_id.id) or "null")+ """,
+                """ + (params.product_id and str(params.product_id.id) or "null")+ """
+                );
+                
+                delete from account_account_lines where create_uid=""" + str(uid) + """;
 
                 insert into account_account_lines 
-                (id, create_uid, create_date, write_date, write_uid,
+                (id, create_uid, create_date, write_date, write_uid, header_id,
                 name, move_id, user_id, journal_id, period_id,
                 --fiscalyear_id, 
                 account_id, account_type_id, move_date, move_name, 
                 move_ref, period_name, 
                 --fiscalyear_name, 
                 account_code, account_name, 
-                account_level, account_type, account_sign, journal_name, initial_balance, debit, credit, ending_balance, partner_id, product_id, qty, sequence, amount_currency, currency_id)
-                select id, create_uid, create_date, write_date, write_uid,
+                account_level, account_type, account_sign, journal_name, initial_balance, debit, credit, ending_balance, 
+                partner_id, product_id, qty, sequence, amount_currency, currency_id)
+                select id, create_uid, create_date, write_date, write_uid, """ + str(uid) + """,
                 name, move_id, user_id, journal_id, period_id,
                 --fiscalyear_id, 
                 account_id, account_type_id, move_date, move_name, 
@@ -1181,19 +939,29 @@ class account_account_lines_wizard(osv.osv_memory):
                 account_level, account_type, account_sign, journal_name, initial_balance, debit, credit, ending_balance, partner_id, product_id, qty, sequence, amount_currency, currency_id
                 from f_account_mx_move_lines(%s, %s, %s);
                 drop table if exists hesatec_mx_auxiliar_borrame%s;
-                """ % (params.account_id.id, params.period_id_start.id, params.period_id_stop.id, uid)
-        #print "sql3: \n", sql3
-        sql = sql1 + sql2 + sql3
-        cr.execute(sql)
+                
+                update account_account_lines_header 
+                set debit_sum=(select sum(debit) from account_account_lines where header_id=%s),
+                    credit_sum=(select sum(credit) from account_account_lines where header_id=%s)
+                where id=%s;
 
-        value = {
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'res_model': 'account.account_lines',
-            'view_id': False,
-            'type': 'ir.actions.act_window',
-            }
-        return value
+                
+                """ % (params.account_id.id, params.period_id_start.id, params.period_id_stop.id, uid, uid, uid, uid)
+        #print "sql3: \n", sql3
+
+            sql = sql1 + sql2 + sql3
+            cr.execute(sql)
+            if params.output == 'list_view':
+                value = {
+                    'view_type': 'form',
+                    'view_mode': 'tree,form',
+                    'res_model': 'account.account_lines',
+                    'view_id': False,
+                    'type': 'ir.actions.act_window',
+                    }
+                return value
+            elif params.output == 'pdf':
+                return self.pool['report'].get_action(cr, uid, [uid], 'argil_mx_accounting_reports_consol.report_auxiliar_cuentas', context=context)
 
 account_account_lines_wizard()
 

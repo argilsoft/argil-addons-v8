@@ -66,7 +66,10 @@ Este modulo esta enfocado cuando se maneja multicompany y permite consolidar cue
     "license" : "AGPL-3",
     "depends" : ["account"],
     "data" : ["account_mx_reports_view.xml",
-                    'security/ir.model.access.csv',],
+              "report/report_balanza_mensual.xml",
+              "report/report_auxiliar_cuentas.xml",
+              "security/ir.model.access.csv",
+             ],
     "installable" : True,
     #"active" : False,
 }

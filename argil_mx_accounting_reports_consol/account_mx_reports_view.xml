@@ -56,6 +56,7 @@ wizard_account_account_lines
                         <field name="account_id" required="1" colspan="4" domain="[('company_id','=',company_id)]"/>
                         <field name="partner_id" colspan="4" />
                         <field name="product_id" colspan="4" />
+                        <field name="output" />
                     </group>
                     <footer>
                         <button name="button_get_info" string="_Aceptar" type="object" icon='gtk-go-forward' class="oe_highlight"/>
@@ -88,7 +89,7 @@ wizard_account_account_lines
                	action="action_open_account_account_lines_wizard"
                 sequence="30"
                 />
-
+<!--
         <menuitem icon="STOCK_PRINT"
                 name="Pérdidas y Ganancias"
                 action="account.action_account_report_pl"
@@ -96,7 +97,7 @@ wizard_account_account_lines
                 parent="menu_mx_reports"
                 sequence="40"
                 />
-
+-->
 
 
 
@@ -142,12 +143,14 @@ account_account_lines
                         <field name="user_id" />
                         <field name="fiscalyear_id" />
                         <field name="period_id" />
-                        <field name="account_id" />
-                        <field name="account_type_id" />
-                        <!--<field name="account_level" />
-                        <field name="account_sign" />-->
                         <field name="move_name" />
                         <field name="move_ref" />
+                        <field name="account_id" />
+                        <field name="account_type_id" />
+                        <field name="name" />
+                        <field name="ref" />                        
+                        <!--<field name="account_level" />
+                        <field name="account_sign" />-->
                         <field name="initial_balance" />
                         <newline />
                         <field name="debit" />
@@ -178,18 +181,20 @@ account_account_lines
                         <field name="period_id" />
                         <field name="move_date" />
                         <field name="move_id" />
+                        <field name="move_ref" />
                         <field name="account_id" />
                         <field name="partner_id" />
+                        <field name="name" />
+                        <field name="ref" />
                         <field name="account_type_id" invisible="1"/>
                         <field name="account_type" invisible="1"/>
                         <field name="account_level" invisible="1"/>
-                        <field name="account_sign" invisible="1"/>
-                        <field name="move_ref" />
+                        <field name="account_sign" invisible="1"/>                        
                         <field name="initial_balance" />
                         <field name="debit"  sum="Cargos"/>
                         <field name="credit" sum="Abonos"/>
                         <field name="ending_balance" />
-                         <field name="amount_currency" />
+                        <field name="amount_currency" />
                         <field name="currency_id" />
                         <field name="product_id" />
                         <field name="qty" />
@@ -206,190 +211,6 @@ account_account_lines
         <field name="view_mode">tree,form</field>
     </record>
 
-
-<!-- 
-****************************
-account_annual_balance
-****************************
-
-
-    <record id="view_account_annual_balance_search" model="ir.ui.view">
-        <field name="name">account.annual_balance.tree</field>
-        <field name="model">account.annual_balance</field>
-        <field name="type">search</field>
-        <field name="arch" type="xml">
-            <search string="Search Balanza">
-                <group>
-                    <field name="fiscalyear"/>
-                    <field name="account_code" />
-                    <field name="account_name" />
-                    <field name="account_level"/>
-                    <field name="account_type" />
-                    <field name="account_nature" />
-                </group>
-                <newline />
-                <group expand="0" string="Filtrar solo cuentas con Movimientos de...">
-                    <field name="moves1"/>
-                    <field name="moves2"/>
-                    <field name="moves3"/>
-                    <field name="moves4"/>
-                    <field name="moves5"/>
-                    <field name="moves6"/>
-                    <field name="moves7"/>
-                    <field name="moves8"/>
-                    <field name="moves9"/>
-                    <field name="moves10"/>
-                    <field name="moves11"/>
-                    <field name="moves12"/>
-                    <field name="moves13"/>
-               </group>   
-            </search>
-        </field>
-        </record>
--->
-<!-- Definimos el formulario de registro de la Balanza de Comprobacion Anual 
-    <record id="view_account_annual_balance_form" model="ir.ui.view">
-            <field name="name">account.annual_balance.form</field>
-            <field name="model">account.annual_balance</field>
-            <field name="type">form</field>
-            <field name="arch" type="xml">
-                <form string="Linea de Balanza Comprobacion">
-                    <group colspan="4" col="6" >
-                        <field name="fiscalyear" colspan="4" readonly="1"/>
-                        <field name="account_code" readonly="1"/>
-                        <field name="account_name" readonly="1"/>
-                        <field name="account_level" readonly="1"/>
-                        <field name="account_type" readonly="1"/>
-                        <field name="account_nature" readonly="1"/>
-                        <field name="initial_balance" readonly="1"/>
-                        <newline />
-                        <field name="debit1" readonly="1"/>
-                        <field name="credit1"  readonly="1"/>
-                        <field name="balance1" readonly="1"/>
-                        <field name="debit2" readonly="1"/>
-                        <field name="credit2" readonly="1"/>
-                        <field name="balance2" readonly="1"/>
-                        <field name="debit3" readonly="1"/>
-                        <field name="credit3" readonly="1"/>
-                        <field name="balance3" readonly="1"/>
-                        <field name="debit4" readonly="1"/>
-                        <field name="credit4" readonly="1"/>
-                        <field name="balance4" readonly="1"/>
-                        <field name="debit5" readonly="1"/>
-                        <field name="credit5" readonly="1"/>
-                        <field name="balance5" readonly="1"/>
-                        <field name="debit6" readonly="1"/>
-                        <field name="credit6" readonly="1"/>
-                        <field name="balance6" readonly="1"/>
-                        <field name="debit7" readonly="1"/>
-                        <field name="credit7" readonly="1"/>
-                        <field name="balance7" readonly="1"/>
-                        <field name="debit8" readonly="1"/>
-                        <field name="credit8" readonly="1"/>
-                        <field name="balance8" readonly="1"/>
-                        <field name="debit9" readonly="1"/>
-                        <field name="credit9" readonly="1"/>
-                        <field name="balance9" readonly="1"/>
-                        <field name="debit10" readonly="1"/>
-                        <field name="credit10" readonly="1"/>
-                        <field name="balance10" readonly="1"/>
-                        <field name="debit11" readonly="1"/>
-                        <field name="credit11" readonly="1"/>
-                        <field name="balance11" readonly="1"/>
-                        <field name="debit12" readonly="1"/>
-                        <field name="credit12" readonly="1"/>
-                        <field name="balance12" readonly="1"/>
-                        <field name="credit13" readonly="1"/>
-                        <field name="balance13" readonly="1"/>
-                    </group>
-                </form>
-            </field>
-        </record>
--->
-<!-- Definimos el Listado de la Balanza de Comprobacion Anual 
-	<record model="ir.ui.view" id="view_account_annual_balance_tree">
-        <field name="name">account.annual_balance.tree</field>
-        <field name="model">account.annual_balance</field>
-		<field name="type">tree</field>
-		<field name="arch" type="xml">
-		    <tree string="Balanza Anual" >
-			<button name="%(action_open_account_account_lines_wizard)d" string="Auxiliar de la cuenta..." 
-				type="action" icon="gtk-go-forward" 
-				context="{'default_fiscalyear_id': fiscalyear_id, 'default_period_id_start': period_id_start,'default_period_id_stop': period_id_stop,'default_account_id':account_id}" />
-
-		        <field name="fiscalyear_id" />
-		        <field name="account_id" invisible="1"/>
-		        <field name="period_id_start" invisible="1"/>
-		        <field name="period_id_stop" invisible="1"/>
-
-		        <field name="account_code"/>
-		        <field name="account_name"/>
-		        <field name="account_level" />
-		        <field name="account_type" />
-		        <field name="account_nature" />
-		        <field name="account_sign" invisible="1"/>
-		        <field name="initial_balance" />
-		        <field name="debit1"/>
-		        <field name="credit1"/>
-		        <field name="balance1"/>                                
-		        <field name="debit2"/>
-		        <field name="credit2"/>
-		        <field name="balance2"/>
-	                <field name="debit3"/>
-		        <field name="credit3"/>
-		        <field name="balance3"/>
-        	        <field name="debit4"/>
-		        <field name="credit4"/>
-		        <field name="balance4"/>
-        	        <field name="debit5"/>
-		        <field name="credit5"/>
-		        <field name="balance5"/>
-        	        <field name="debit6"/>
-		        <field name="credit6"/>
-		        <field name="balance6"/>
-        	        <field name="debit7"/>
-		        <field name="credit7"/>
-		        <field name="balance7"/>
-        	        <field name="debit8"/>
-		        <field name="credit8"/>
-		        <field name="balance8"/>
-        	        <field name="debit9"/>
-		        <field name="credit9"/>
-		        <field name="balance9"/>
-        	        <field name="debit10"/>
-		        <field name="credit10"/>
-		        <field name="balance10"/>
-        	        <field name="debit11"/>
-		        <field name="credit11"/>
-		        <field name="balance11"/>
-        	        <field name="debit12"/>
-		        <field name="credit12"/>
-		        <field name="balance12"/>
-        	        <field name="debit13"/>
-		        <field name="credit13"/>
-		        <field name="balance13"/>
-		    </tree>
-		</field>
-	</record>
--->
-<!-- Definimos una accion para disparar la Balanza de Comprobacion Anual 
-    <record model="ir.actions.act_window" id="open_view_account_annual_balance_tree">
-        <field name="name">Balanza de Comprobacion Anual</field>
-        <field name="res_model">account.annual_balance</field>
-        <field name="view_type">form</field>
-        <field name="view_mode">tree,form</field>
-        <field name="context">{'search_default_fiscalyear':'2012'}</field>
-    </record>
--->
-<!-- Definimos la opcion del menu para Balanza de Comprobacion Anual
-    
-    <menuitem   name="Balanza Anual" 
-                parent="menu_mx_reports" 
-                id="menu_account_annual_balance_open_view_tree" 
-                action="open_view_account_annual_balance_tree"
-                sequence="10"
-            />
--->
 
 
 <!-- 
@@ -467,9 +288,9 @@ account_monthly_balance
 
 			<button name="%(action_open_account_account_lines_wizard)d" string="Auxiliar de la cuenta..." 
 				type="action" icon="gtk-go-forward" 
-				context="{'search_default_period_id': period_id, 'default_period_id_start': period_id,'default_period_id_stop': period_id,'default_account_id':account_id,'default_partner_id':partner_id}" />
+				context="{'default_period_id_start': period_id,'default_period_id_stop': period_id,'default_account_id':account_id,'default_partner_id':partner_id}" />
 
-		        <!--<field name="fiscalyear_id" invisible="1"/> -->
+		        <!--<field name="fiscalyear_id" invisible="1"/>-->
 		        <field name="period_id" invisible="1"/>
                 <field name="period_name" />
 		        <field name="account_id" invisible="1"/>
@@ -493,28 +314,7 @@ account_monthly_balance
 		</field>
 	</record>
 
-<!-- Definimos una accion para disparar la Balanza de Comprobacion Mensual 
-    <record model="ir.actions.act_window" id="open_view_account_monthly_balance_tree">
-        <field name="name">Balanza Mensual</field>
-        <field name="res_model">account.monthly_balance</field>
-        <field name="view_type">form</field>
-        <field name="view_mode">tree,form</field>
-        <field name="context">{'search_default_period_id': 1,'search_default_moves':'Yes'}</field>
-    </record>
--->
-<!-- Definimos la opcion del menu para Balanza de Comprobacion Mensual 
-    
-    <menuitem name="Balanza de Comprobacion Mensual" parent="menu_mx_reports" id="menu_account_monthly_balance_open_view_tree" 
-        action="open_view_account_monthly_balance_tree"/>
-
--->
-
-<!-- Definimos la opcion del menu para Balanza de Comprobacion Anual
-
-    <menuitem name="Auxiliares Contables Temporal" parent="menu_mx_reports" id="menu_account_account_lines_open_view_tree" 
-        action="open_view_account_account_lines_tree"/> -->
-
-<!-- 
+<!--
 ****************************
 account_monthly_balance_wizard
 ****************************
@@ -532,8 +332,9 @@ account_monthly_balance_wizard
                     <field name="company_id" required="1" colspan="4" />
                     <field name="chart_account_id" required="1" colspan="4" 
                            domain="[('company_id','=',company_id), ('parent_id','=', False)]"/>
-                    <field name="period_id" required="1"  domain="[('company_id','=',company_id)]"/>
+                    <field name="period_id" required="1"  domain="[('company_id','=',company_id)]"/>                    
                     <field name="partner_breakdown" />
+                    <field name="output" />
                 </group>
                 <footer>
                     <button name="get_info" string="_Aceptar" type="object" icon='gtk-go-forward'/>
@@ -827,6 +628,23 @@ account_mx_report_data_wizard
         <field name="jasper_output">xls</field> 
     </record>
 -->
+    <report 
+        id="action_report_balanza_mensual"
+        model="account.monthly_balance_header"
+        string="Balanza Mensual"
+        report_type="qweb-pdf"
+        name="argil_mx_accounting_reports_consol.report_balanza_mensual"
+        file="argil_mx_accounting_reports_consol.report_balanza_mensual"
+        />
+        
+    <report 
+        id="action_report_auxiliar_cuentas"
+        model="account.account_lines_header"
+        string="Auxiliar de Cuentas"
+        report_type="qweb-pdf"
+        name="argil_mx_accounting_reports_consol.report_auxiliar_cuentas"
+        file="argil_mx_accounting_reports_consol.report_auxiliar_cuentas"
+        />
 
 
 </data>

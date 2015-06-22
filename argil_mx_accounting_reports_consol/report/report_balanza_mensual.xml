@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+    
+    <template id="argil_mx_layout">
+        <!-- Multicompany -->
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+
+        <div class="header">
+            <div class="row" style="font-size: 8px;">
+                <table style="width: 100%">
+                    <tr style="text-align: center;border-bottom:1px dotted #AAAAAA;">
+                        <td style="width: 15%">
+                            <span t-esc="time.strftime('%Y-%m-%d')"/>
+                            <span t-esc="time.strftime('%H:%M')"/>
+                        </td>
+                        <td style="width: 70%">
+                            <span t-esc="company.name"/>
+                        </td>
+                        <td style="width: 15%">
+                            <ul class="list-inline">
+                                <li><span class="page"/></li>
+                                <li>/</li>
+                                <li><span class="topage"/></li>
+                            </ul>                            
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <t t-raw="0" />
+    </template>
+
+    
+    <template id="report_balanza_mensual_document">
+        <t t-call="argil_mx_accounting_reports_consol.argil_mx_layout">
+            <div class="page">
+                <div class="row" style="font-size: 12px;">
+                    <strong><span t-field="o.create_uid.company_id.name"/></strong><BR/>
+                    BALANZA DE COMPROBACION MENSUAL - Periodo: <span t-field="o.period_name"/>
+                </div>
+
+                <table class="table table-condensed" style="page-break-inside: avoid">
+                    <thead>
+                        <tr style="text-align:center;font-size: 9px">
+                            <th style="width:12%;">Cuenta</th>
+                            <th style="width:26%;">Descripcion</th>
+                            <th style="width:5%;">Nivel</th>
+                            <th style="width:7%;">Naturaleza</th>
+                            <th style="width:10%;">Saldo Inicial</th>
+                            <th style="width:10%;">Cargos</th>
+                            <th style="width:10%;">Abonos</th>
+                            <th style="width:10%;">Saldo Periodo</th>
+                            <th style="width:10%;">Saldo Acumulado</th>                        
+                        </tr>
+                   </thead>
+                   <tbody class="sale_tbody">
+                        <tr t-foreach="o.line_ids" t-as="line" style="font-size: 8px">
+                            <td><span t-field="line.account_code"/></td>
+                            <td><span t-field="line.account_name"/></td>
+                            <td style="text-align: center;"><span t-field="line.account_level"/></td>
+                            <td style="text-align: center;"><span t-field="line.account_nature"/></td>
+                            <td class="text-right"><span t-field="line.initial_balance"/></td>
+                            <td class="text-right"><span t-field="line.debit"/></td>
+                            <td class="text-right"><span t-field="line.credit"/></td>
+                            <td class="text-right"><span t-field="line.balance"/></td>                            
+                            <td class="text-right"><span t-field="line.ending_balance"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </t>
+    </template>
+
+<template id="report_balanza_mensual">
+    <t t-call="report.html_container">
+        <t t-set="data_report_margin_top" t-value="20"/> 
+        <t t-set="data_report_header_spacing" t-value="10"/>
+        <t t-set="data_report_dpi" t-value="600"/>
+        <t t-foreach="doc_ids" t-as="doc_id">
+            <t t-raw="translate_doc(doc_id, doc_model, 'create_uid.lang', 'argil_mx_accounting_reports_consol.report_balanza_mensual_document')"/>
+        </t>
+    </t>
+</template>
+</data>
+</openerp>

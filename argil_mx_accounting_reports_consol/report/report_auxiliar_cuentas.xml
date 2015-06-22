@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+<!--    
+    <template id="argil_mx_layout">
+        
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+
+        <div class="header">
+            <div class="row" style="font-size: 8px;">
+                <table style="width: 100%">
+                    <tr style="text-align: center;border-bottom:1px dotted #AAAAAA;">
+                        <td style="width: 15%">
+                            <span t-esc="time.strftime('%Y-%m-%d')"/>
+                            <span t-esc="time.strftime('%H:%M')"/>
+                        </td>
+                        <td style="width: 70%">
+                            <span t-esc="company.name"/>
+                        </td>
+                        <td style="width: 15%">
+                            <ul class="list-inline">
+                                <li><span class="page"/></li>
+                                <li>/</li>
+                                <li><span class="topage"/></li>
+                            </ul>                            
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <t t-raw="0" />
+    </template>
+-->
+    
+    <template id="report_auxiliar_cuentas_document">
+        <t t-call="argil_mx_accounting_reports_consol.argil_mx_layout">
+            <div class="page">
+                <div class="row" style="font-size: 12px;">
+                    <strong><span t-field="o.create_uid.company_id.name"/><BR/>
+                    <span style="font-size: 10px;">AUXILIAR DE LA CUENTA: <span t-field="o.account_id.code"/> - <span t-field="o.account_id.name"/><BR/>
+                    Del Periodo: <span t-field="o.period_id_start.name"/> al Periodo: <span t-field="o.period_id_end.name"/>
+                    </span></strong>
+                </div>
+
+                <table class="table table-condensed" style="page-break-inside: avoid">
+                    <thead>
+                        <tr style="text-align:center;font-size: 9px">
+                            <th>Diario</th>
+                            <th>Fecha Póliza</th>
+                            <th>Póliza</th>                    
+                            <th>Empresa</th>
+                            <th>Concepto Partida</th>
+                            <th>Referencia Partida</th>
+                            <th>Saldo Inicial</th>
+                            <th>Cargos</th>
+                            <th>Abonos</th>
+                            <th>Saldo Final</th>
+                            <th>Monto M.E.</th>
+                            <th>Moneda Extranjera</th>
+                            <th>Usuario</th>
+                        </tr>
+                   </thead>
+                   <tbody class="sale_tbody">
+                        <tr t-foreach="o.line_ids" t-as="line" style="font-size: 8px">
+                        <td style="text-align: center;"><span t-field="line.journal_id.name" /></td>
+                        <td style="text-align: center;"><span t-field="line.move_date" /></td>
+                        <td style="text-align: center;"><span t-field="line.move_id.name" /></td>
+                        <td><span t-field="line.partner_id.name" /></td>
+                        <td><span t-field="line.name" /></td>
+                        <td><span t-field="line.ref" /></td>
+                        <td class="text-right"><span t-field="line.initial_balance" /></td>
+                        <td class="text-right"><span t-field="line.debit"/></td>
+                        <td class="text-right"><span t-field="line.credit"/></td>
+                        <td class="text-right"><span t-field="line.ending_balance" /></td>
+                        <td class="text-right"><span t-field="line.amount_currency" /></td>
+                        <td><span t-field="line.currency_id.name" /></td>
+                        <td style="text-align: center;"><span t-field="line.user_id.name" /></td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="sale_tbody">
+                        <tr style="font-size: 8px">
+                            <td colspan="7">.</td>
+                            <td class="text-right"><span t-field="o.debit_sum"/></td>
+                            <td class="text-right"><span t-field="o.credit_sum"/></td>
+                            <td class="text-right" colspan="4">.</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </t>
+    </template>
+
+<template id="report_auxiliar_cuentas">
+    <t t-call="report.html_container">
+        <t t-set="data_report_margin_top" t-value="20"/> 
+        <t t-set="data_report_header_spacing" t-value="10"/>
+        <t t-set="data_report_dpi" t-value="600"/>
+        <t t-foreach="doc_ids" t-as="doc_id">
+            <t t-raw="translate_doc(doc_id, doc_model, 'create_uid.lang', 'argil_mx_accounting_reports_consol.report_auxiliar_cuentas_document')"/>
+        </t>
+    </t>
+</template>
+</data>
+</openerp>

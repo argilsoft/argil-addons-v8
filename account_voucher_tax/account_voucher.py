@@ -72,7 +72,7 @@ class account_voucher(osv.Model):
                     amount_to_paid = line.amount_original
                 else:
                     amount_to_paid = line.amount
-                factor = ((amount_to_paid * 100) / line.amount_original) / 100
+                factor = ((amount_to_paid * 100) / line.amount_original) / 100 if line.amount_original else 0
                 move_id = line.move_line_id.move_id.id
                 invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)
                 for invoice in invoice_obj.browse(cr, uid, invoice_ids, context=context):
@@ -237,8 +237,8 @@ class account_voucher(osv.Model):
 
         if not amount_tax_unround:
             credit_line_vals.pop('amount_tax_unround')
-            credit_line_vals.pop('tax_id')
-            debit_line_vals.pop('tax_id')
+            'tax_id' in credit_line_vals and credit_line_vals.pop('tax_id')
+            'tax_id' in debit_line_vals and debit_line_vals.pop('tax_id')
 
         account_obj = self.pool.get('account.account')
         reference_amount = abs(reference_amount)

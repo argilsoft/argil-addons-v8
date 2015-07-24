@@ -27,7 +27,7 @@
 from openerp.osv import osv, fields
 
 from openerp.addons.decimal_precision import decimal_precision as dp
-
+from openerp.tools.translate import _
 
 class account_voucher(osv.Model):
     _inherit = 'account.voucher'
@@ -57,6 +57,7 @@ class account_voucher(osv.Model):
         if context is None:
             context = {}
         ctx = context.copy()
+        precision = self.pool.get('decimal.precision').precision_get(cr, uid, 'Account')
         currency_obj = self.pool.get('res.currency')
         move_obj = self.pool.get('account.move')
         move_line_obj = self.pool.get('account.move.line')
@@ -67,198 +68,143 @@ class account_voucher(osv.Model):
         for voucher in self.browse(cr, uid, [voucher_id], context=context):
             if voucher.amount <= 0:
               continue
+            flag_journal_fc = bool(company_currency != current_currency)            
             for line in voucher.line_ids:
-                if line.amount > line.amount_original:
-                    amount_to_paid = line.amount_original
-                else:
-                    amount_to_paid = line.amount
+                amount_to_paid = line.amount_original if line.amount > line.amount_original else line.amount
                 factor = ((amount_to_paid * 100) / line.amount_original) / 100 if line.amount_original else 0
                 move_id = line.move_line_id.move_id.id
-                invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)
+                invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)                
                 for invoice in invoice_obj.browse(cr, uid, invoice_ids, context=context):
                     for inv_line_tax in invoice.tax_line:
-                        if inv_line_tax.tax_id.tax_voucher_ok:
-                            base_amount = inv_line_tax.amount
-                            account = inv_line_tax.tax_id.account_collected_voucher_id.id
-                            credit_amount = float('%.*f' % (2, (base_amount * factor)))
-                            credit_amount_original = (base_amount * factor)
-                            amount_unround = float(credit_amount_original)
-                            diff_amount_tax = 0.0
-                            diff_account_id = False
-                            if company_currency == current_currency:
-                                base_amount_curr = inv_line_tax.base_amount
-                                rate_move = self.get_rate(cr, uid, move_id, context=context)                                
-                                credit_amount = credit_amount * rate_move
-                                amount_unround = amount_unround * rate_move
-                            else:
-                                credit_amount = currency_obj.compute(cr, uid,
-                                    invoice.currency_id.id, current_currency,
-                                    float('%.*f' % (2, credit_amount)),
-                                    round=False, context=context)
-                                amount_unround = currency_obj.compute(cr, uid,
-                                    invoice.currency_id.id, current_currency,
-                                    float(amount_unround), round=False,
-                                    context=context)
-                                base_amount_curr = currency_obj.compute(cr, uid,
-                                    invoice.currency_id.id, current_currency,
-                                    float('%.*f' % (2, base_amount)), round=False,
-                                    context=context)
-                                ctx['date'] = invoice.date_invoice 
-                                credit_orig = currency_obj.compute(cr, uid,
-                                    current_currency, company_currency,
-                                    float('%.*f' % (2, credit_amount)),
+                        # Inicio Modificacion
+                        src_account_id = inv_line_tax.tax_id.account_collected_id.id
+                        dest_account_id = inv_line_tax.tax_id.account_collected_voucher_id.id or inv_line_tax.tax_id.account_paid_voucher_id.id
+                        voucher_curr = current_currency
+                        invoice_curr = invoice.currency_id.id
+                        company_curr = company_currency
+                        mi_invoice = inv_line_tax.amount * factor
+                        mib_invoice = inv_line_tax.base_amount * factor
+                        ctx['date'] = invoice.date_invoice 
+                        mi_company_curr_orig = currency_obj.compute(cr, uid,
+                                    invoice.currency_id.id, company_curr,
+                                    float('%.*f' % (2,mi_invoice)),
                                     round=False, context=ctx)
-                                ctx['date'] = voucher.date
-                                credit_diff = currency_obj.compute(cr, uid,
-                                    current_currency, company_currency,
-                                    float('%.*f' % (2, credit_amount)),
+                        mib_company_curr_orig = currency_obj.compute(cr, uid,
+                                    invoice.currency_id.id, company_curr,
+                                    float('%.*f' % (2,mib_invoice)),
                                     round=False, context=ctx)
-                                diff_amount_tax = currency_obj.compute(cr, uid,
-                                    company_currency, current_currency, float(
-                                        '%.*f' % (2, (credit_orig - credit_diff))),
-                                    round=False, context=context)
-                                acc_expense_voucher_id = inv_line_tax and inv_line_tax.tax_id and\
-                                    inv_line_tax.tax_id.account_expense_voucher_id and\
-                                    inv_line_tax.tax_id.account_expense_voucher_id.id or False
-                                acc_income_voucher_id = inv_line_tax and inv_line_tax.tax_id and\
-                                    inv_line_tax.tax_id.account_income_voucher_id and\
-                                    inv_line_tax.tax_id.account_income_voucher_id.id or False
-                                if credit_orig > credit_diff:
-                                    if voucher.type == 'receipt':
-                                        diff_account_id = acc_expense_voucher_id
-                                    else:
-                                        diff_account_id = acc_income_voucher_id
-                                elif credit_orig < credit_diff:
-                                    if voucher.type == 'receipt':
-                                        diff_account_id = acc_income_voucher_id
-                                    else:
-                                        diff_account_id = acc_expense_voucher_id
-                                        
-                            # Aqui van las partidas nuevas
-                            amount_tax_unround = amount_unround
+                        mi_voucher_curr_orig = currency_obj.compute(cr, uid,
+                                    invoice.currency_id.id, voucher_curr,
+                                    float('%.*f' % (2,mi_invoice)),
+                                    round=False, context=ctx)
+                        mib_voucher_curr_orig = currency_obj.compute(cr, uid,
+                                    invoice.currency_id.id, voucher_curr,
+                                    float('%.*f' % (2,mib_invoice)),
+                                    round=False, context=ctx)
+                                                
+                        ctx['date'] = voucher.date 
+                        mi_invoice_voucher_date = currency_obj.compute(cr, uid,
+                                                    invoice.currency_id.id, company_curr,
+                                                    float('%.*f' % (2,mi_invoice)),
+                                                    round=False, context=ctx) * factor
 
-                            if voucher.type in ('sale', 'receipt'):
-                                account_tax_voucher = inv_line_tax.tax_id.account_collected_voucher_id.id
+                        mib_invoice_voucher_date = currency_obj.compute(cr, uid,
+                                                    invoice.currency_id.id, company_curr,
+                                                    float('%.*f' % (2,mib_invoice)),
+                                                    round=False, context=ctx) * factor
+
+                        mi_voucher_amount_currency3 = currency_obj.compute(cr, uid,
+                                                    invoice.currency_id.id, current_currency,
+                                                    float('%.*f' % (2,mi_invoice)),
+                                                    round=False, context=ctx) * factor
+                        mi_voucher_amount_currency2 = currency_obj.compute(cr, uid,
+                                                    current_currency, company_currency,
+                                                    float('%.*f' % (2,mi_voucher_amount_currency3)),
+                                                    round=False, context=ctx) * factor
+
+                        journal_id = voucher.journal_id.id
+                        period_id = voucher.period_id.id
+                        acc_a = inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False
+                        date = voucher.date
+                        # Partida correspondiente al Monto Original del Impuesto en la factura
+                        line2 = {
+                            'name': inv_line_tax.tax_id.name + ((_(" - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
+                            'quantity': 1,
+                            'partner_id': invoice.partner_id.id, 
+                            'debit': round((mi_company_curr_orig < 0.0 and -mi_company_curr_orig or 0.0), precision),
+                            'credit': round((mi_company_curr_orig >= 0.0 and mi_company_curr_orig or 0.0), precision),
+                            'account_id': src_account_id, 
+                            'journal_id': journal_id,
+                            'period_id': period_id,
+                            'company_id': invoice.company_id.id,
+                            'move_id': int(xmove_id),
+                            ##'amount_tax_unround': amount_tax_unround,            
+                            ##'tax_id': tax_id,
+                            ##'tax_voucher_id': tax_id,
+                            'tax_id_secondary': inv_line_tax.tax_id.id,
+                            'analytic_account_id': acc_a,
+                            'date': date,
+                            'currency_id': (company_currency != invoice_curr) and invoice_curr or False,
+                            'amount_currency' : (company_currency != invoice.currency_id.id) and ((mi_invoice >= 0.0) and -mi_invoice or mi_invoice) or False,
+                            'amount_base' : mib_company_curr_orig,
+                        }
+
+                        line1 = line2.copy()
+                        line3 = {}
+                        xparam = self.pool.get('ir.config_parameter').get_param(cr, uid, 'tax_amount_according_to_currency_exchange_on_payment_date', context=context)[0]
+                        if not xparam == "1" or (company_curr == voucher_curr == invoice_curr):
+                            line1.update({
+                                'account_id'  : dest_account_id,
+                                'debit'       : line2['credit'],
+                                'credit'      : line2['debit'],
+                                'amount_base' : line2['amount_base'],
+                                
+                                })
+                            if company_currency != current_currency:
+                                line1.update({
+                                        'amount_currency' : -line2['amount_currency']
+                                    })
+                        elif xparam == "1":                                                        
+                            line1.update({
+                                'debit': mi_voucher_amount_currency2 >= 0.0 and mi_voucher_amount_currency2 or 0.0,
+                                'credit': mi_voucher_amount_currency2 < 0.0 and -mi_voucher_amount_currency2 or 0.0,
+                                'account_id': dest_account_id,
+                                'currency_id': (company_currency != current_currency) and current_currency or False,
+                                'amount_currency' : (company_currency != current_currency) and mi_voucher_amount_currency3 or False,
+                                'amount_base' : abs(mi_voucher_amount_currency2) / inv_line_tax.tax_id.amount,
+                                })
+
+                            if (mi_company_curr_orig != mi_voucher_amount_currency2):
+                                amount_diff =  mi_company_curr_orig - mi_voucher_amount_currency2
+                                line3 = {
+                                    'name': _('Write Off for Voucher') + ' - ' + inv_line_tax.tax_id.name + (invoice and (_(" - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
+                                    'quantity': 1,
+                                    'partner_id': invoice.partner_id.id,
+                                    'debit': amount_diff >= 0.0 and amount_diff or 0.0,
+                                    'credit': amount_diff < 0.0 and abs(amount_diff) or 0.0,
+                                    'account_id': (amount_diff < 0 ) and invoice.company_id.income_currency_exchange_account_id.id or invoice.company_id.expense_currency_exchange_account_id.id,
+                                    'journal_id': journal_id,
+                                    'period_id': period_id,
+                                    'company_id': invoice.company_id.id,
+                                    'move_id': int(xmove_id),
+                                    #'amount_tax_unround': amount_tax_unround,
+                                    #'tax_id': tax_id,
+                                    'analytic_account_id': acc_a,
+                                    'date': date,
+                                    #'tax_voucher_id': tax_id,
+                                    'currency_id': False,
+                                    'amount_currency' : False,
+                                    }
                             else:
-                                account_tax_voucher = inv_line_tax.tax_id.account_paid_voucher_id.id
-
-                            account_tax_collected = inv_line_tax.tax_id.account_collected_id.id
-
-                            ctx['date'] = line.move_line_id.date
-                            reference_amount = amount_unround
-                            
-                            move_lines_tax = self._preparate_move_line_tax(
-                                cr, uid, account_tax_voucher, account_tax_collected, xmove_id, 
-                                voucher.type, voucher.partner_id.id, voucher.period_id.id, voucher.journal_id.id, voucher.date, 
-                                company_currency, reference_amount, amount_tax_unround, current_currency, inv_line_tax.tax_id.id, 
-                                inv_line_tax.tax_id, 
-                                inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False,
-                                base_amount_curr,
-                                factor, context=context)
-                            
-                            for move_line_tax in move_lines_tax:
-                                move_create = move_line_obj.create(cr, uid, move_line_tax,
-                                                        context=context)
-                                move_ids.append(move_create)
+                                line3 = {}
+                        lines = line3 and [line1,line2,line3] or [line1,line2]
+                        #raise osv.except_osv('Pausa!',"Pausa")
+                        for move_line_tax in lines:
+                            move_create = move_line_obj.create(cr, uid, move_line_tax,
+                                                    context=context)
+                            move_ids.append(move_create)
         return move_ids
 
-
-    # pylint: disable=W0622
-    def _preparate_move_line_tax(self, cr, uid, src_account_id, dest_account_id,
-                            move_id, type, partner, period, journal, date,
-                            company_currency, reference_amount,
-                            amount_tax_unround, reference_currency_id,
-                            tax_id, line_tax, acc_a, amount_base_tax,  # informacion de lineas de impuestos
-                            factor=0, context=None):
-        if type == 'payment' or reference_amount < 0:
-            src_account_id, dest_account_id = dest_account_id, src_account_id
-        if type == 'payment' and reference_amount < 0:
-            src_account_id, dest_account_id = dest_account_id, src_account_id
-
-        amount_base, tax_secondary = self._get_base_amount_tax_secondary(cr,
-                                    uid, line_tax,
-                                    amount_base_tax * factor, reference_amount,
-                                    context=context)
-        debit_line_vals = {
-            'name': line_tax.name,
-            'quantity': 1,
-            'partner_id': partner,
-            'debit': abs(reference_amount),
-            'credit': 0.0,
-            'account_id': dest_account_id,
-            'journal_id': journal,
-            'period_id': period,
-            'company_id': company_currency,
-            'move_id': int(move_id),
-            #'tax_id': tax_id,
-            'analytic_account_id': acc_a,
-            'date': date,
-            #'tax_voucher_id': tax_id,
-        }
-        credit_line_vals = {
-            'name': line_tax.name,
-            'quantity': 1,
-            'partner_id': partner,
-            'debit': 0.0,
-            'credit': abs(reference_amount),
-            'account_id': src_account_id,
-            'journal_id': journal,
-            'period_id': period,
-            'company_id': company_currency,
-            'move_id': int(move_id),
-            'amount_tax_unround': amount_tax_unround,
-            #'tax_id': tax_id,
-            'analytic_account_id': acc_a,
-            'date': date,
-            #'tax_voucher_id': tax_id,
-        }
-
-        if context.get('amount_voucher') and context.get('amount_voucher') < 0:
-            debit_line_vals.update({'credit': debit_line_vals.get('debit', 0.0), 'debit': 0.0})
-            credit_line_vals.update({'debit': credit_line_vals.get('credit', 0.0), 'credit': 0.0})
-
-        if type in ('payment', 'purchase'):
-            if reference_amount < 0:
-                credit_line_vals.pop('analytic_account_id')
-                credit_line_vals.update({
-                    'amount_base': abs(amount_base),
-                    'tax_id_secondary': tax_secondary})
-            else:
-                debit_line_vals.pop('analytic_account_id')
-                debit_line_vals.update({
-                    'tax_id_secondary': tax_secondary,
-                    'amount_base': abs(amount_base)})
-        else:
-            if reference_amount < 0:
-                debit_line_vals.pop('analytic_account_id')
-                debit_line_vals.pop('tax_id_secondary')
-            else:
-                credit_line_vals.pop('analytic_account_id')
-
-        if not amount_tax_unround:
-            credit_line_vals.pop('amount_tax_unround')
-            'tax_id' in credit_line_vals and credit_line_vals.pop('tax_id')
-            'tax_id' in debit_line_vals and debit_line_vals.pop('tax_id')
-
-        account_obj = self.pool.get('account.account')
-        reference_amount = abs(reference_amount)
-        src_acct, dest_acct = account_obj.browse(cr, uid, [src_account_id, dest_account_id], context=context)
-        src_main_currency_id = src_acct.currency_id and src_acct.currency_id.id or src_acct.company_id.currency_id.id
-        dest_main_currency_id = dest_acct.currency_id and dest_acct.currency_id.id or dest_acct.company_id.currency_id.id
-        cur_obj = self.pool.get('res.currency')
-        if reference_currency_id != src_main_currency_id:
-            # fix credit line:
-            credit_line_vals['credit'] = cur_obj.compute(cr, uid, reference_currency_id, src_main_currency_id, reference_amount, context=context)
-            credit_line_vals['amount_tax_unround'] = cur_obj.compute(cr, uid, reference_currency_id, src_main_currency_id, abs(reference_amount), round=False, context=context)
-            if (not src_acct.currency_id) or src_acct.currency_id.id == reference_currency_id:
-                credit_line_vals.update(currency_id=reference_currency_id, amount_currency=-reference_amount)
-        if reference_currency_id != dest_main_currency_id:
-            # fix debit line:
-            debit_line_vals['debit'] = cur_obj.compute(cr, uid, reference_currency_id, dest_main_currency_id, reference_amount, context=context)
-            if (not dest_acct.currency_id) or dest_acct.currency_id.id == reference_currency_id:
-                debit_line_vals.update(currency_id=reference_currency_id, amount_currency=reference_amount)
-
-        return [debit_line_vals, credit_line_vals]
 
     def _get_base_amount_tax_secondary(self, cr, uid, line_tax,
                             amount_base_tax, reference_amount, context=None):

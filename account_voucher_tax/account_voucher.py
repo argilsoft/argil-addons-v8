@@ -76,9 +76,13 @@ class account_voucher(osv.Model):
                 invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)                
                 for invoice in invoice_obj.browse(cr, uid, invoice_ids, context=context):
                     for inv_line_tax in invoice.tax_line:
+                        if not inv_line_tax.tax_id.tax_category_id.name in ('IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
+                            continue
                         # Inicio Modificacion
                         src_account_id = inv_line_tax.tax_id.account_collected_id.id
                         dest_account_id = inv_line_tax.tax_id.account_collected_voucher_id.id or inv_line_tax.tax_id.account_paid_voucher_id.id
+                        if not (src_account_id and dest_account_id):
+                            raise osv.except_osv('Advertencia !',"El impuesto %s no se encuentra correctamente configurado, favor de revisar." % (inv_line_tax.tax_id.name))
                         voucher_curr = current_currency
                         invoice_curr = invoice.currency_id.id
                         company_curr = company_currency
@@ -138,15 +142,13 @@ class account_voucher(osv.Model):
                             'period_id': period_id,
                             'company_id': invoice.company_id.id,
                             'move_id': int(xmove_id),
-                            ##'amount_tax_unround': amount_tax_unround,            
-                            ##'tax_id': tax_id,
-                            ##'tax_voucher_id': tax_id,
                             'tax_id_secondary': inv_line_tax.tax_id.id,
                             'analytic_account_id': acc_a,
                             'date': date,
                             'currency_id': (company_currency != invoice_curr) and invoice_curr or False,
                             'amount_currency' : (company_currency != invoice.currency_id.id) and ((mi_invoice >= 0.0) and -mi_invoice or mi_invoice) or False,
                             'amount_base' : mib_company_curr_orig,
+                            'state' : 'draft',
                         }
 
                         line1 = line2.copy()
@@ -187,138 +189,38 @@ class account_voucher(osv.Model):
                                     'period_id': period_id,
                                     'company_id': invoice.company_id.id,
                                     'move_id': int(xmove_id),
-                                    #'amount_tax_unround': amount_tax_unround,
                                     #'tax_id': tax_id,
                                     'analytic_account_id': acc_a,
                                     'date': date,
-                                    #'tax_voucher_id': tax_id,
                                     'currency_id': False,
                                     'amount_currency' : False,
+                                    'state' : 'draft',
                                     }
                             else:
                                 line3 = {}
                         lines = line3 and [line1,line2,line3] or [line1,line2]
                         #raise osv.except_osv('Pausa!',"Pausa")
                         for move_line_tax in lines:
+                            #print "move_line_tax: ", move_line_tax
                             move_create = move_line_obj.create(cr, uid, move_line_tax,
                                                     context=context)
                             move_ids.append(move_create)
         return move_ids
 
 
-    def _get_base_amount_tax_secondary(self, cr, uid, line_tax,
-                            amount_base_tax, reference_amount, context=None):
-        amount_base = 0
-        tax_secondary = False
-        if line_tax and line_tax.tax_category_id and line_tax.tax_category_id.name in (
-                'IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
-            amount_base = line_tax.tax_category_id.value_tax and\
-                reference_amount / line_tax.tax_category_id.value_tax\
-                or amount_base_tax
-            tax_secondary = line_tax.id
-        return [amount_base, tax_secondary]
+#    def _get_base_amount_tax_secondary(self, cr, uid, line_tax,
+#                            amount_base_tax, reference_amount, context=None):
+#        amount_base = 0
+#        tax_secondary = False
+#        if line_tax and line_tax.tax_category_id and line_tax.tax_category_id.name in (
+#                'IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
+#            amount_base = line_tax.tax_category_id.value_tax and\
+#                reference_amount / line_tax.tax_category_id.value_tax\
+#                or amount_base_tax
+#            tax_secondary = line_tax.id
+#        return [amount_base, tax_secondary]
 
 
 
 
 
-class account_move_line(osv.Model):
-    _inherit = 'account.move.line'
-
-    def _get_query_round(self, cr, uid, ids, context=None):
-        if context == None:
-            context = {}
-        cr.execute("""
-                select account_id, sum(amount_tax_unround) as without,
-                    case  when sum(credit) > 0.0
-                        then sum(credit)
-                    when sum(debit) > 0.0
-                        then sum(debit)
-                    end as round, id
-                from account_move_line
-                where move_id in (
-                select move_id from account_move_line aml
-                where id in %s)
-                and amount_tax_unround is not null
-                group by account_id, id
-                order by id asc """, (tuple(ids),))
-        dat = cr.dictfetchall()
-        return dat
-
-    # pylint: disable=W0622
-    def reconcile(self, cr, uid, ids, type='auto', writeoff_acc_id=False, writeoff_period_id=False, writeoff_journal_id=False, context=None):
-        res = super(account_move_line, self).reconcile(cr, uid, ids=ids,
-        type='auto', writeoff_acc_id=writeoff_acc_id, writeoff_period_id=writeoff_period_id,
-        writeoff_journal_id=writeoff_journal_id, context=context)
-#        if not writeoff_acc_id:
-        if context.get('apply_round', False):
-            dat = []
-        else:
-            dat = self._get_query_round(cr, uid, ids, context=context)
-        res_round = {}
-        res_without_round = {}
-        res_ids = {}
-
-        for val_round in dat:
-            res_round.setdefault(val_round['account_id'], 0)
-            res_without_round.setdefault(val_round['account_id'], 0)
-            res_ids.setdefault(val_round['account_id'], 0)
-            res_round[val_round['account_id']] += val_round['round'] or 0.0
-            res_without_round[val_round['account_id']] += val_round['without']
-            res_ids[val_round['account_id']] = val_round['id']
-        for res_diff_id in res_round.items():
-            diff_val = abs(res_without_round[res_diff_id[0]]) - abs(res_round[res_diff_id[0]])
-            diff_val = round(diff_val, 2)
-            if diff_val != 0.00:
-                move_diff_id = [res_ids[res_diff_id[0]]]
-                for move in self.browse(cr, uid, move_diff_id, context=context):
-                    move_line_ids = self.search(cr, uid, [('move_id', '=', move.move_id.id), ('tax_id', '=', move.tax_id.id)])
-                    for diff_move in self.browse(cr, uid, move_line_ids, context=context):
-                        if diff_move.debit == 0.0 and diff_move.credit:
-                            self.write(cr, uid, [diff_move.id], {'credit': diff_move.credit + diff_val})
-                        if diff_move.credit == 0.0 and diff_move.debit:
-                            self.write(cr, uid, [diff_move.id], {'debit': diff_move.debit + diff_val})
-        return res
-
-    _columns = {
-        'amount_tax_unround': fields.float('Amount tax undound', digits=(12, 16)),
-        'tax_id': fields.many2one('account.voucher.line.tax', 'Tax'),
-        'tax_voucher_id': fields.many2one('account.voucher.line.tax', 'Tax Voucher'),
-    }
-
-
-class account_voucher_line_tax(osv.Model):
-    _name = 'account.voucher.line.tax'
-
-    def _compute_balance(self, cr, uid, ids, name, args, context=None):
-        res = {}
-
-        for line_tax in self.browse(cr, uid, ids, context=context):
-            tax_sum = 0.0
-            old_ids = self.search(cr, uid, [('move_line_id', '=', line_tax.move_line_id.id), ('id', '!=', line_tax.id)])
-            for lin_sum in self.browse(cr, uid, old_ids, context=context):
-                tax_sum += lin_sum.amount_tax
-            res[line_tax.id] = line_tax.original_tax - tax_sum
-        return res
-
-    def onchange_amount_tax(self, cr, uid, ids, amount, tax):
-        res = {}
-        res['value'] = {'amount_tax': amount, 'amount_tax_unround': amount, 'diff_amount_tax': abs(tax - amount)}
-        return res
-
-    _columns = {
-        'tax_id': fields.many2one('account.tax', 'Tax'),
-        'account_id': fields.many2one('account.account', 'Account'),
-        'amount_tax': fields.float('Amount Tax', digits=(12, 16)),
-        'amount_tax_unround': fields.float('Amount tax undound'),
-        'original_tax': fields.float('Original Import Tax'),
-        'tax': fields.float('Tax'),
-        'balance_tax': fields.function(_compute_balance, type='float', string='Balance Import Tax', store=True, digits=(12, 6)),
-        #~ 'balance_tax':fields.float('Balance Import Tax'),
-        'diff_amount_tax': fields.float('Difference', digits_compute= dp.get_precision('Account')),
-        'diff_account_id': fields.many2one('account.account', 'Account Diff'),
-        'voucher_line_id': fields.many2one('account.voucher.line', 'Voucher Line'),
-        'move_line_id': fields.many2one('account.move.line', 'Move'),
-        'analytic_account_id': fields.many2one('account.analytic.account', 'Account Analytic'),
-        'amount_base': fields.float('Amount Base')
-    }

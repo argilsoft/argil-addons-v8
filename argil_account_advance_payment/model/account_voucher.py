@@ -37,7 +37,7 @@ class account_voucher(osv.Model):
             ('normal', 'Payments'),
             ('advance', 'Advance'),
         ], 'Transaction Type', select=True, track_visibility='always',
-            help="""Payments.- Normal payment is made. \nAdvance.- Advance payment of custom or supplier"""),
+            help="""Payments.- Normal payment is made. \nAdvance.- Advance payment of customer or supplier"""),
     }
 
     _defaults = {
@@ -61,3 +61,4 @@ class account_voucher(osv.Model):
         else:
             return {'value': {'payment_option': 'without_writeoff', 'writeoff_acc_id': False, 'comment' : _('Write Off')}}
 
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -67,14 +67,14 @@ Caused VAT is that actually charged to customers.
     "data": [
         "account_tax_view.xml", 
         "account_voucher_tax_view.xml", 
-        "security/ir.model.access.csv"
+        #"security/ir.model.access.csv"
     ], 
-    "test": [
-        "test/account_voucher_taxes.yml", 
-        "test/account_voucher_tax_round_off.yml", 
-        "test/account_voucher_tax_write_off.yml", 
-        "test/account_voucher_tax_currency_diff.yml"
-    ], 
+#    "test": [
+#        "test/account_voucher_taxes.yml", 
+#        "test/account_voucher_tax_round_off.yml", 
+#        "test/account_voucher_tax_write_off.yml", 
+#        "test/account_voucher_tax_currency_diff.yml"
+#    ], 
     "js": [], 
     "css": [], 
     "qweb": [], 

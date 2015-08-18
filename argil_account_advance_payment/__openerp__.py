@@ -2,11 +2,10 @@
 #
 #    Module Writen to OpenERP, Open Source Management Solution
 #
-#    Copyright (c) 2013 Hesa Tecnica - http://www.hesatecnica.com/
-#    All Rights Reserved.
-#    info hesatecnica (openerp@hesatecnica.com)
+#    Copyright (c) 2015 - Argil Consulting - http://www.argil.mx
+#    Info  (info@argil.mx)
 #
-#    Coded by: Israel Cruz Argil (israel.cruz@hesatecnica.com)
+#    Coded by: Israel Cruz Argil (israel.cruz@argil.mx)
 #
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -27,28 +26,25 @@
 {
     "name": "Account Advance Payment",
     "version": "1.0",
-    "author": "Hesatec",
-    "category": "Generic Modules",
+    "author": "Argil Consulting",
+    "category": "Account",
     "description" : """
 Account Advance Payment
 =======================
 
-This module you can help with advance payment of custom and suppliers.
+This module you can help with advance payment for customers and suppliers.
 
-This module adds the fields Account Supplier Advance, Account Customer Advance,
+This module adds fields Account Supplier Advance and Account Customer Advance,
 
 Also adds the field Transaction Type in the view payments of customs and suppliers.
 
     """,
-    "website": "http://www.hesatecnica.com/",
+    "website": "http://www.argil.mx/",
     "license": "AGPL-3",
     "depends": [
             "account",
             "account_voucher",
-            "account_reconcile_advance",
                 ],
-    "demo": [
-    ],
     "data": [
         'view/res_partner_advance_payment_view.xml',
         'view/account_voucher_advance_payment_view.xml',

@@ -34,24 +34,22 @@ class res_partner(osv.Model):
         for id in ids:
             res = {id: {'customer_advance': 0.0, 'supplier_advance': 0.0}}
         return res
-
     _columns = {
         'property_account_supplier_advance': fields.property(
-            'account.account',
             type='many2one',
             relation='account.account',
-            string="Account Supplier Advance",
-            view_load=True,
+            string="Advance Supplier Account",
             domain="[('type','in',('other', 'payable'))]",
-            help="This account will be used for advance payment of suppliers"),
+            help="This account will be used for payment in advance of suppliers",
+            required=False),
         'property_account_customer_advance': fields.property(
-            'account.account',
             type='many2one',
             relation='account.account',
-            string="Account Customer Advance",
-            view_load=True,
+            string="Advance Customer Account",
             domain="[('type','in',('other', 'receivable'))]",
-            help="This account will be used for advance payment of custom"),
+            help="This account will be used for payment in advance of custom",
+            required=False),
+    
         'customer_advance': fields.function(
             _supplier_customer_advance_get,
             type='float',
@@ -64,4 +62,6 @@ class res_partner(osv.Model):
             string='Total Supplier Advance',
             multi='sc',
             help="Total amount of advance payment of suppliers."),
-    }
+
+        }
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

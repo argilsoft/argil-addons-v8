@@ -116,7 +116,6 @@ For example:
             ],
     'website': 'http://www.argil.mx',
     'installable': True,
-    'active': True,
 }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

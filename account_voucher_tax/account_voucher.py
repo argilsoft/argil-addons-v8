@@ -66,17 +66,19 @@ class account_voucher(osv.Model):
         current_currency = self._get_current_currency(cr, uid, voucher_id, context)
         move_ids = []
         for voucher in self.browse(cr, uid, [voucher_id], context=context):
-            if voucher.amount <= 0:
+            if voucher.amount <= 0.0:
               continue
             flag_journal_fc = bool(company_currency != current_currency)            
             for line in voucher.line_ids:
+                if line.amount <= 0.0:
+                    continue
                 amount_to_paid = line.amount_original if line.amount > line.amount_original else line.amount
                 factor = ((amount_to_paid * 100) / line.amount_original) / 100 if line.amount_original else 0
                 move_id = line.move_line_id.move_id.id
                 invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)                
                 for invoice in invoice_obj.browse(cr, uid, invoice_ids, context=context):
                     for inv_line_tax in invoice.tax_line:
-                        if not inv_line_tax.tax_id.tax_category_id.name in ('IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
+                        if not inv_line_tax.tax_id.tax_voucher_ok or not inv_line_tax.tax_id.tax_category_id.name in ('IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
                             continue
                         # Inicio Modificacion
                         src_account_id = inv_line_tax.tax_id.account_collected_id.id

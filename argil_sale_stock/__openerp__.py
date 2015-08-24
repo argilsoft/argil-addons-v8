@@ -33,8 +33,6 @@ Filter Stock Level by Sale Order Warehouse
 You can use this module to filter Stock Level from Warehouse selected in Sale Order 
 """,
     "data" : [],
-    "active": True,
-    'application': False,
     "installable": True
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

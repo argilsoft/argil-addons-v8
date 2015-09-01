@@ -179,7 +179,7 @@ class account_voucher(osv.Model):
                                 })
 
                             if (mi_company_curr_orig != mi_voucher_amount_currency2):
-                                amount_diff =  mi_company_curr_orig - mi_voucher_amount_currency2
+                                amount_diff =  round(mi_company_curr_orig,2) - round(mi_voucher_amount_currency2,2)
                                 line3 = {
                                     'name': _('Write Off for Voucher') + ' - ' + inv_line_tax.tax_id.name + (invoice and (_(" - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
                                     'quantity': 1,

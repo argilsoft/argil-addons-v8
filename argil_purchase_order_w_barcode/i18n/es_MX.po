@@ -1,0 +1,67 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* argil_purchase_order_w_barcode
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-08-31 00:37+0000\n"
+"PO-Revision-Date: 2015-08-30 19:41-0500\n"
+"Last-Translator: Israel Cruz Argil <israel.cruz@argil.mx>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: es_MX\n"
+"X-Generator: Poedit 1.8.4\n"
+
+#. module: argil_purchase_order_w_barcode
+#: field:purchase.order,get_product_ean:0
+msgid "Add Product"
+msgstr "Producto"
+
+#. module: argil_purchase_order_w_barcode
+#: model:res.groups,name:argil_purchase_order_w_barcode.group_purchase_barcode
+msgid "Barcode Reader in Purchase Order"
+msgstr "Código de Barras en Orden de Compra"
+
+#. module: argil_purchase_order_w_barcode
+#: model:ir.model,name:argil_purchase_order_w_barcode.model_purchase_order
+msgid "Purchase Order"
+msgstr "Orden de Compra"
+
+#. module: argil_purchase_order_w_barcode
+#: help:purchase.order,get_product_ean:0
+msgid "Read a product barcode to add it as new Line."
+msgstr "Lea el código de barras de un producto para agregarlo como una línea de compra. También puede capturar manualmente el código y/o referencia, y agregarle un ‘+’ y posteriormente un número: Por ejemplo: MXABC+2"
+
+#. module: argil_purchase_order_w_barcode
+#: code:addons/argil_purchase_order_w_barcode/model/purchase.py:59
+#, python-format
+msgid "There is an error after symbol '+'. After product Barcode or Reference you can add '+' and quantity: %s"
+msgstr "Hay un error después del sígno de ‘+’. Recuerde, después del Código de Barras o Referencia del producto puede agregar el signo ‘+’ seguido de un número: %s"
+
+#. module: argil_purchase_order_w_barcode
+#: code:addons/argil_purchase_order_w_barcode/model/purchase.py:70
+#, python-format
+msgid "There is no product with Barcode or Reference: %s"
+msgstr "No existe el producto con el Código de Barras o Referencia: %s"
+
+#. module: argil_purchase_order_w_barcode
+#: code:addons/argil_purchase_order_w_barcode/model/purchase.py:58
+#: code:addons/argil_purchase_order_w_barcode/model/purchase.py:69
+#, python-format
+msgid "Warning!"
+msgstr "Advertencia!"
+
+#. module: argil_purchase_order_w_barcode
+#: field:purchase.order,website_message_ids:0
+msgid "Website Messages"
+msgstr "Mensajes del sitio web"
+
+#. module: argil_purchase_order_w_barcode
+#: help:purchase.order,website_message_ids:0
+msgid "Website communication history"
+msgstr "Historial de comunicaciones del sitio web"

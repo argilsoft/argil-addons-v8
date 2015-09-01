@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<openerp>
+  <data>
+    <record id="purchase_order_form_get_product_ean" model="ir.ui.view">
+        <field name="name">purchase.order.form.get_product_ean</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <notebook position="before">
+                <group col="2" colspan="2">
+                    <field name="get_product_ean" 
+                        on_change="onchange_product_ean(get_product_ean, pricelist_id, partner_id, date_order, fiscal_position, minimum_planned_date, order_line, context)" 
+                        groups="argil_purchase_order_w_barcode.group_purchase_barcode"   
+                           />
+                </group>
+            </notebook>
+            
+        </field>
+    </record>
+
+
+  </data>
+</openerp>

@@ -56,6 +56,20 @@ class stock_quant(osv.osv):
         accounts = product_obj.get_product_accounts(cr, uid, move.product_id.product_tmpl_id.id, context)
         journal_id = accounts['stock_journal']
         #####
+        # Transferencias entre ubicaciones de empresas 'supplier','customer'
+        if move.location_id.usage in ('supplier','customer') \
+            and move.location_dest_id.usage in ('supplier','customer'):
+            acc_src = (move.location_id.usage == 'supplier' and move.location_dest_id.usage == 'customer' and \
+                            accounts['stock_account_input']) or \
+                      (move.location_id.usage == 'customer' and move.location_dest_id.usage == 'supplier' and \
+                            accounts['stock_account_output'])
+            acc_dest = (move.location_id.usage == 'supplier' and move.location_dest_id.usage == 'customer' and \
+                            accounts['stock_account_output']) or \
+                       (move.location_id.usage == 'customer' and move.location_dest_id.usage == 'supplier' and \
+                            accounts['stock_account_input'])
+            acc_valuation = False
+            return journal_id, acc_src, acc_dest, acc_valuation
+
         # Transferencias entre ubicaciones 'internal','transit','inventory','production'
         if move.location_id.usage in ('internal','transit','inventory','production') \
             and move.location_dest_id.usage in ('internal','transit','inventory','production'):
@@ -115,10 +129,21 @@ class stock_quant(osv.osv):
                 #to make the adjustments when we know the real cost price.
                 return False
 
+        # Dropshipping
+        if move.location_id.usage in ('supplier','customer') \
+              and move.location_dest_id.usage in ('supplier','customer'):
+            ctx = context.copy()
+            ctx['force_company'] = (company_to and company_to.id) or (company_from and company_from.id) or \
+                                    self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.id
+            journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation(cr, uid, move, context=ctx)
+            self._create_account_move_line(cr, uid, quants, move, acc_src, acc_dest, journal_id, context=ctx)
+            return
+            
         if move.location_id.usage in ('internal','transit','inventory','production') \
               and move.location_dest_id.usage in ('internal','transit','inventory','production'):
             ctx = context.copy()
-            ctx['force_company'] = company_to and company_to.id or company_from.id
+            ctx['force_company'] = (company_to and company_to.id) or (company_from and company_from.id) or \
+                                    self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.id
             journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation(cr, uid, move, context=ctx)
             self._create_account_move_line(cr, uid, quants, move, acc_src, acc_dest, journal_id, context=ctx)
             return

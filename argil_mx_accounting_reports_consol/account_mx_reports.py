@@ -903,7 +903,7 @@ class account_account_lines_wizard(osv.osv_memory):
             #print "sql2: ", sql2
             
             sql3 = """
-                delete from account_account_lines_header where id=""" + str(uid) + """;
+                delete from account_account_lines_header where create_uid=""" + str(uid) + """;
                 insert into account_account_lines_header
                 (id, create_uid, create_date, write_date, write_uid, 
                 account_id, period_id_start, period_id_end, partner_id, product_id)

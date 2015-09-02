@@ -64,7 +64,7 @@ Este modulo esta enfocado cuando se maneja multicompany y permite consolidar cue
     """,
     "website" : "http://www.argil.mx",
     "license" : "AGPL-3",
-    "depends" : ["account"],
+    "depends" : ["account","jasper_reports"],
     "data" : ["account_mx_reports_view.xml",
               "report/report_balanza_mensual.xml",
               "report/report_auxiliar_cuentas.xml",

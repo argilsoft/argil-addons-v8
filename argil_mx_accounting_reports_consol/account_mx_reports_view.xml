@@ -408,6 +408,7 @@ account.mx_report_definition
             <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Definicion de Reporte">
+                    <group col="4" colspan="4">
                     <field name="internal_group" colspan="4" />
                     <field name="name"  colspan="4" />
                     <field name="complete_name" colspan="4" attrs="{'invisible':[('type','!=','detail')]}"/>
@@ -431,15 +432,19 @@ account.mx_report_definition
                             <field name="child_id" colspan="4" nolabel="1" context="{'default_parent_id': active_id, 'default_type' : 'detail'}" />
                         </page>
                         <page string="Cuentas contables" attrs="{'invisible':[('type','!=','detail')]}">
+                            <group>
                             <field name="account_ids" colspan="4" nolabel="1"/>
                             <field name="report_id" />
                             <field name="report_id_use_resume" attrs="{'invisible':[('report_id','=', False)]}" />
                             <field name="report_id_account" attrs="{'invisible':[('report_id_use_resume','=',0)]}" />
                             <field name="report_id_label"  attrs="{'invisible':[('report_id_use_resume','=',0)]}" />
                             <field name="report_id_show_result"  attrs="{'invisible':['|',('report_id_use_resume','=',1),('report_id','=', False) ]}" />
+                            </group>
                         </page>
                     </notebook>
+                </group>
                 </form>
+                
             </field>
         </record>
 
@@ -602,32 +607,32 @@ account_mx_report_data_wizard
 		id="menu_account_mx_report_data_wizard_form" 
     	action="action_open_account_mx_report_data_wizard" sequence="20"/>
 
-<!-- Agregamos el reporte para salida en formato PDF para lanzarlo desde el Wizard para obtener los Reportes Contables-
+<!-- Agregamos el reporte para salida en formato PDF para lanzarlo desde el Wizard para obtener los Reportes Contables-->
 
     <record id="ht_reportes_contables_pdf" model="ir.actions.report.xml">
         <field name="name">ht_reportes_contables</field>
         <field name="type">ir.actions.report.xml</field>
         <field name="model">account.mx_report_data</field>
         <field name="report_name">ht_reportes_contables_pdf</field>
-        <field name="report_rml">hesatec_mx_accounting_reports_v7/report/reporte_contable_v2.jrxml</field>
+        <field name="report_rml">argil_mx_accounting_reports_consol/report/reporte_contable_v2.jrxml</field>
         <field name="report_type">pdf</field>
         <field name="jasper_report">1</field>
         <field name="jasper_output">pdf</field> 
     </record>
--->
-<!-- Agregamos el reporte para salida en formato XLS para lanzarlo desde el Wizard para obtener los Reportes Contables
+
+<!-- Agregamos el reporte para salida en formato XLS para lanzarlo desde el Wizard para obtener los Reportes Contables -->
 
     <record id="ht_reportes_contables_xls" model="ir.actions.report.xml">
         <field name="name">ht_reportes_contables</field>
         <field name="type">ir.actions.report.xml</field>
         <field name="model">account.mx_report_data</field>
         <field name="report_name">ht_reportes_contables_xls</field>
-        <field name="report_rml">hesatec_mx_accounting_reports_v7/report/reporte_contable_v2.jrxml</field>
-        <field name="report_type">xls</field>
+        <field name="report_rml">argil_mx_accounting_reports_consol/report/reporte_contable_v2.jrxml</field>
+        <field name="report_type">pdf</field>
         <field name="jasper_report">1</field>
         <field name="jasper_output">xls</field> 
     </record>
--->
+
     <report 
         id="action_report_balanza_mensual"
         model="account.monthly_balance_header"

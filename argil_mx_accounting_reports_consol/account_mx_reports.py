@@ -608,7 +608,7 @@ class account_account_lines(osv.osv):
     _description = "Auxiliar de Cuentas"
 
     _columns = {
-        'header_id'         : fields.many2one('account.account_lines_header', 'Header', readonly=True),        
+        'header_id'         : fields.many2one('account.account_lines_header', 'Header', readonly=True, ondelete='cascade'),        
         'name'              : fields.char('Concepto Partida', size=64, readonly=True),
         'ref'               : fields.char('Referencia Partida', size=64, readonly=True),
         'move_id'           : fields.many2one('account.move', 'Póliza', readonly=True),
@@ -1145,8 +1145,22 @@ class account_mx_report_data_wizard(osv.osv_memory):
                 AS
                 $BODY$
 
-                BEGIN
 
+              DECLARE
+                  _period_month integer;
+                  _period_name varchar(64);
+                  _period_fiscalyear integer;
+
+
+              BEGIN
+                  select date_part('month', date_start)::integer, name, fiscalyear_id into _period_month, _period_name, _period_fiscalyear 
+                  from account_period where id=x_period_id;
+
+                  drop table if exists _periodos;
+                  create table _periodos as
+                  select xperiodo.id from account_period xperiodo 
+                  where xperiodo.fiscalyear_id= (select fiscalyear.id from account_fiscalyear fiscalyear where _period_fiscalyear = fiscalyear.id)
+                  and xperiodo.name < _period_name; 
                     return query 
 	                select 
 	                    x_uid, LOCALTIMESTAMP, LOCALTIMESTAMP, x_uid,
@@ -1165,16 +1179,16 @@ class account_mx_report_data_wizard(osv.osv_memory):
 
 	                    account.code, 
 	                    account.name, 
-	                    period.id,
+	                    x_period_id,
 
-	                    case date_part('month', period.date_start)
+	                    case _period_month
 	                    when 1 then 
 		                    account_type.sign * 
 		                    (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
 		                    from account_move move, account_move_line line, account_journal journal
 		                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
 		                    and line.journal_id = journal.id and journal.type='situation'
-		                    and line.period_id = period.id
+		                    and line.period_id = x_period_id
 		                    )
 	                    else
 		                    account_type.sign * 
@@ -1182,34 +1196,30 @@ class account_mx_report_data_wizard(osv.osv_memory):
 		                    from account_move move, account_move_line line, account_journal journal
 		                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
 		                    and line.journal_id = journal.id 
-		                    and line.period_id in 
-			                    (select xperiodo.id from account_period xperiodo 
-			                    where xperiodo.fiscalyear_id= (select fiscalyear.id from account_fiscalyear fiscalyear where period.fiscalyear_id = fiscalyear.id)
-			                    and xperiodo.name < period.name 
-			                    )
-		                    )
+		                    and line.period_id in (select id from _periodos)
+                            )
 	                    end::float,
 	                    (select COALESCE(sum(line.debit), 0.00) 
 	                    from account_move move, account_move_line line, account_journal journal
 	                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
 	                    and line.journal_id = journal.id and journal.type<>'situation'
-	                    and line.period_id = period.id)::float
+	                    and line.period_id = x_period_id)::float
 	                    ,
 	                    (select COALESCE(sum(line.credit), 0.00) 
 	                    from account_move move, account_move_line line, account_journal journal
 	                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
 	                    and line.journal_id = journal.id and journal.type<>'situation'
-	                    and line.period_id = period.id)::float
+	                    and line.period_id = x_period_id)::float
 	                    
-	                    from account_period period, 
+	                    from --account_period period, 
 	                    account_mx_report_definition subreport 
 		                    left join account_account_mx_reports_rel subreport_accounts on subreport_accounts.mx_report_definition_id = subreport.id
 		                    left join account_account account on subreport_accounts.account_id = account.id
 		                    left join account_account_type account_type on account.user_type=account_type.id	
-	                    where period.id=x_period_id and
+	                    where --period.id=x_period_id and
 	                    case x_parent_id 
-	                    when 0 then subreport.id = x_report_id
-	                    else subreport.parent_id = x_parent_id
+	                       when 0 then subreport.id = x_report_id
+	                       else subreport.parent_id = x_parent_id
 	                    end
 	                    order by subreport.parent_id, subreport.sequence, account.code;
 

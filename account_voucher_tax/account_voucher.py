@@ -112,21 +112,21 @@ class account_voucher(osv.Model):
                         mi_invoice_voucher_date = currency_obj.compute(cr, uid,
                                                     invoice.currency_id.id, company_curr,
                                                     float('%.*f' % (2,mi_invoice)),
-                                                    round=False, context=ctx) * factor
+                                                    round=False, context=ctx)
 
                         mib_invoice_voucher_date = currency_obj.compute(cr, uid,
                                                     invoice.currency_id.id, company_curr,
                                                     float('%.*f' % (2,mib_invoice)),
-                                                    round=False, context=ctx) * factor
+                                                    round=False, context=ctx)
 
                         mi_voucher_amount_currency3 = currency_obj.compute(cr, uid,
                                                     invoice.currency_id.id, current_currency,
                                                     float('%.*f' % (2,mi_invoice)),
-                                                    round=False, context=ctx) * factor
+                                                    round=False, context=ctx)
                         mi_voucher_amount_currency2 = currency_obj.compute(cr, uid,
                                                     current_currency, company_currency,
                                                     float('%.*f' % (2,mi_voucher_amount_currency3)),
-                                                    round=False, context=ctx) * factor
+                                                    round=False, context=ctx)
 
                         journal_id = voucher.journal_id.id
                         period_id = voucher.period_id.id
@@ -134,7 +134,7 @@ class account_voucher(osv.Model):
                         date = voucher.date
                         # Partida correspondiente al Monto Original del Impuesto en la factura
                         line2 = {
-                            'name': inv_line_tax.tax_id.name + ((_(" - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
+                            'name': inv_line_tax.tax_id.name + ((_(" - Original Amount - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
                             'quantity': 1,
                             'partner_id': invoice.partner_id.id, 
                             'debit': round((mi_company_curr_orig < 0.0 and -mi_company_curr_orig or 0.0), precision),
@@ -158,6 +158,7 @@ class account_voucher(osv.Model):
                         xparam = self.pool.get('ir.config_parameter').get_param(cr, uid, 'tax_amount_according_to_currency_exchange_on_payment_date', context=context)[0]
                         if not xparam == "1" or (company_curr == voucher_curr == invoice_curr):
                             line1.update({
+                                'name': inv_line_tax.tax_id.name + ((_(" - Voucher Amount - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),        
                                 'account_id'  : dest_account_id,
                                 'debit'       : line2['credit'],
                                 'credit'      : line2['debit'],
@@ -170,6 +171,7 @@ class account_voucher(osv.Model):
                                     })
                         elif xparam == "1":                                                        
                             line1.update({
+                                'name': inv_line_tax.tax_id.name + ((_(" - Voucher Amount Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),    
                                 'debit': mi_voucher_amount_currency2 >= 0.0 and mi_voucher_amount_currency2 or 0.0,
                                 'credit': mi_voucher_amount_currency2 < 0.0 and -mi_voucher_amount_currency2 or 0.0,
                                 'account_id': dest_account_id,
@@ -178,7 +180,7 @@ class account_voucher(osv.Model):
                                 'amount_base' : abs(mi_voucher_amount_currency2) / inv_line_tax.tax_id.amount,
                                 })
 
-                            if (mi_company_curr_orig != mi_voucher_amount_currency2):
+                            if (round(mi_company_curr_orig, 2) - round(mi_voucher_amount_currency2,2)):
                                 amount_diff =  round(mi_company_curr_orig,2) - round(mi_voucher_amount_currency2,2)
                                 line3 = {
                                     'name': _('Write Off for Voucher') + ' - ' + inv_line_tax.tax_id.name + (invoice and (_(" - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),

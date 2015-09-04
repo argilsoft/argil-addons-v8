@@ -70,7 +70,7 @@ class account_move_line(osv.Model):
                         not line.not_move_diot:
                     raise osv.except_osv(_('Warning!'), _('The lines with tax of purchase, need '
                         'have a value in the credit.'))
-        print "res: ", res
+        #print "res: ", res
         return res
 
     def onchange_account_id(self, cr, uid, ids, account_id=False, partner_id=False, context=None):

@@ -1,0 +1,239 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_voucher_tax
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-04 16:40+0000\n"
+"PO-Revision-Date: 2015-09-04 10:41-0600\n"
+"Last-Translator: Israel Cruz Argil <israel.cruz@argil.mx>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: es_MX\n"
+"X-Generator: Poedit 1.8.4\n"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:562
+#, python-format
+msgid ""
+"\n"
+"                            You should configure\n"
+"                            'VAT pending for apply Account'\n"
+"                            in tax [%s]"
+msgstr ""
+"\n"
+"                            Debe configurar la cuenta \n"
+"                            ‘IVA pendiente por Aplicar'\n"
+"                            en el impuesto [%s]"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:625
+#, python-format
+msgid ""
+"\n"
+"                            You should configure in company\n"
+"                            'Tax Provision by Customer' "
+msgstr ""
+"\n"
+"                            Debe configurar en la Compañía\n"
+"                            ‘Impuesto a Provisionar para Clientes' "
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:637
+#, python-format
+msgid ""
+"\n"
+"                            You should configure in company\n"
+"                            'Tax Provision by Supplier' "
+msgstr ""
+"\n"
+"                            Debe configurar en la Compañía\n"
+"                            ‘Impuesto a Provisional de Proveedor' "
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:75
+#, python-format
+msgid ""
+"\n"
+"                    You should configure the 'Gain Exchange Rate Account' to\n"
+"                    manage automatically the booking of accounting entries\n"
+"                    related to differences between exchange rates."
+msgstr ""
+"\n"
+"                    Debe configurar la cuenta ‘Ganancia Cambiaria’ para\n"
+"                    automatizar las partidas contables\n"
+"                    relacionadas a diferencias en Tipos de Cambio."
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:63
+#, python-format
+msgid ""
+"\n"
+"                    You should configure the 'Loss Exchange Rate Account'\n"
+"                    to manage automatically the booking of accounting entries\n"
+"                    related to differences between exchange rates."
+msgstr ""
+"\n"
+"                    Debe configurar la cuenta ‘Pérdida Cambiaria’ para\n"
+"                    automatizar las partidas contables\n"
+"                    relacionadas a diferencias en Tipos de Cambio."
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_voucher.py:186
+#, python-format
+msgid " - Invoice: "
+msgstr " - Factura: "
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_voucher.py:137
+#, python-format
+msgid " - Original Amount - Invoice: "
+msgstr " - Monto Impuesto Original - Factura: "
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_voucher.py:161
+#, python-format
+msgid " - Voucher Amount - Invoice: "
+msgstr " - Monto Pagado Impuesto - Factura: "
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_voucher.py:174
+#, python-format
+msgid " - Voucher Amount Invoice: "
+msgstr " - Monto Pagado Impuesto - Factura: "
+
+#. module: account_voucher_tax
+#: field:account.tax,account_collected_voucher_id:0
+msgid "Account Collected Voucher"
+msgstr "Cuenta de Ingresos"
+
+#. module: account_voucher_tax
+#: field:account.tax,account_expense_voucher_id:0
+msgid "Account Expense Voucher"
+msgstr "Cuenta de Gastos"
+
+#. module: account_voucher_tax
+#: field:account.tax,account_income_voucher_id:0
+msgid "Account Income Voucher"
+msgstr "Cuenta de Ingreso"
+
+#. module: account_voucher_tax
+#: field:account.tax,account_paid_voucher_id:0
+msgid "Account Paid Voucher"
+msgstr "Cuenta de Pago"
+
+#. module: account_voucher_tax
+#: model:ir.model,name:account_voucher_tax.model_account_voucher
+msgid "Accounting Voucher"
+msgstr "Comprobantes contables"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:566
+#: code:addons/account_voucher_tax/account_statement_bank.py:628
+#: code:addons/account_voucher_tax/account_statement_bank.py:640
+#, python-format
+msgid "Error"
+msgstr "Error"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:68
+#: code:addons/account_voucher_tax/account_statement_bank.py:80
+#, python-format
+msgid "Go to the configuration panel"
+msgstr "Vaya a la Configuración"
+
+#. module: account_voucher_tax
+#: selection:account.tax,tax_diot:0
+msgid "IVA 11"
+msgstr "IVA 11"
+
+#. module: account_voucher_tax
+#: selection:account.tax,tax_diot:0
+msgid "IVA 16"
+msgstr "IVA 16"
+
+#. module: account_voucher_tax
+#: selection:account.tax,tax_diot:0
+msgid "IVA CERO"
+msgstr "IVA CERO"
+
+#. module: account_voucher_tax
+#: selection:account.tax,tax_diot:0
+msgid "IVA EXENTO"
+msgstr "IVA EXENTO"
+
+#. module: account_voucher_tax
+#: selection:account.tax,tax_diot:0
+msgid "IVA RETENIDO"
+msgstr "IVA RETENIDO"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:318
+#, python-format
+msgid "Invalid Action!"
+msgstr "Acción Inválida!"
+
+#. module: account_voucher_tax
+#: model:ir.model,name:account_voucher_tax.model_account_invoice
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: account_voucher_tax
+#: model:ir.model,name:account_voucher_tax.model_account_move_line
+msgid "Journal Items"
+msgstr "Apuntes contables"
+
+#. module: account_voucher_tax
+#: model:ir.model,name:account_voucher_tax.model_account_tax
+msgid "Tax"
+msgstr "Impuesto"
+
+#. module: account_voucher_tax
+#: view:account.tax:account_voucher_tax.view_account_tax_voucher_account
+msgid "Tax Computation"
+msgstr "Cálculo de tasas"
+
+#. module: account_voucher_tax
+#: field:account.tax,tax_voucher_ok:0
+msgid "Tax Vocuher Ok"
+msgstr "Impuesto en Pago Ok"
+
+#. module: account_voucher_tax
+#: field:account.tax,tax_diot:0
+msgid "Tax to affect in DIOT"
+msgstr "Impuesto a afectar en DIOT"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_voucher.py:186
+#, python-format
+msgid "Write Off for Voucher"
+msgstr "Diferencia Cambiaria"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:324
+#, python-format
+msgid ""
+"You are trying reconciling in the payment a refund credit / debit, this can cause conflicts to processes as payment tax and / or commissions, you should first make a conciliation manual process to the refund credit / debit with your invoice and return here to make the payment. \n"
+" Refunds credit / debit: \n"
+" %s"
+msgstr ""
+"Está intentando reconciliar en el pago una Nota de Crédito, esto puede causar conflicto en el proceso de cálculo de Impuesto pagado. Separe la aplicación de Notas de Crédito de los Pagos. \n"
+" Documento: \n"
+" %s"
+
+#. module: account_voucher_tax
+#: code:addons/account_voucher_tax/account_statement_bank.py:95
+#: code:addons/account_voucher_tax/account_statement_bank.py:109
+#, python-format
+msgid "change"
+msgstr "cambio"
+
+#. module: account_voucher_tax
+#: help:account.tax,tax_voucher_ok:0
+msgid "help"
+msgstr "Ayuda"

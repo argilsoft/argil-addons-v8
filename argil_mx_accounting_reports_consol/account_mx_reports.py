@@ -330,14 +330,16 @@ BEGIN
 			where line.state='valid' 
 			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
 			and line.period_id in (select id from period_ids) 
-                                --(select id from account_period where name = _period_name))::float,
+                                --(select id from account_period where name = _period_name))
+                                )::float,
 		credit = (select COALESCE(sum(line.credit), 0.00) 
 			from account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			where line.state='valid' 
 			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
 			and line.period_id in (select id from period_ids)
-                                --(select id from account_period where name = _period_name))::float,
+                                --(select id from account_period where name = _period_name)
+                                )::float,
         period_id = (select distinct line.period_id
                 from account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'

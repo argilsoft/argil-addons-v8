@@ -619,7 +619,31 @@ account_mx_report_data_wizard
         <field name="jasper_report">1</field>
         <field name="jasper_output">pdf</field> 
     </record>
+    
+    <!-- ========= REPORTES SIN DETALLE ======== -->
+    <record id="ht_reportes_contables_pdf_not_detail" model="ir.actions.report.xml">
+        <field name="name">ht_reportes_contables_pdf_not_detail</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">account.mx_report_data</field>
+        <field name="report_name">ht_reportes_contables_pdf_not_detail</field>
+        <field name="report_rml">argil_mx_accounting_reports_consol/report/reporte_contable_v2_not_detail.jrxml</field>
+        <field name="report_type">pdf</field>
+        <field name="jasper_report">1</field>
+        <field name="jasper_output">pdf</field> 
+    </record>
+    
+    <record id="ht_reportes_contables_xls_not_detail" model="ir.actions.report.xml">
+        <field name="name">ht_reportes_contables_xls_not_detail</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">account.mx_report_data</field>
+        <field name="report_name">ht_reportes_contables_xls_not_detail</field>
+        <field name="report_rml">argil_mx_accounting_reports_consol/report/reporte_contable_v2_not_detail.jrxml</field>
+        <field name="report_type">pdf</field>
+        <field name="jasper_report">1</field>
+        <field name="jasper_output">xls</field> 
+    </record>
 
+    
 <!-- Agregamos el reporte para salida en formato XLS para lanzarlo desde el Wizard para obtener los Reportes Contables -->
 
     <record id="ht_reportes_contables_xls" model="ir.actions.report.xml">

@@ -219,6 +219,22 @@ BEGIN
 	select date_part('month', period.date_start) into _period_month from account_period period where period.id=x_period_id;
 	--RAISE NOTICE 'Period Month: %', _period_month;
 	select period.name into _period_name from account_period period where period.id=x_period_id;
+    
+    drop table if exists period_ids;
+	create table period_ids as
+	select ap.id  from account_period ap 
+    inner join account_fiscalyear afy on afy.id=ap.fiscalyear_id
+    where ap.name=_period_name;
+    
+    drop table if exists period_ids2;
+    create table period_ids2 as
+    select ap.id
+    from account_period ap 
+    where ap.name < _period_name
+    and ap.fiscalyear_id in (select af1.id from account_fiscalyear af1 where af1.name in 
+                    (select af2.name from account_fiscalyear af2 where af2.id=(select ap2.fiscalyear_id from account_period ap2 where ap2.name=_period_name limit 1)));
+
+    
 	--RAISE NOTICE 'Period Name: %', _period_name;
 	select ((select count(id) from account_period 
 			where id in 
@@ -301,11 +317,11 @@ BEGIN
 				(CASE WHEN _period_month = 1 and not _period_flag_00 THEN journal.type <> 'situation' ELSE 1=1 END)
 			where line.state='valid' 
 			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
-			and line.period_id in 
-			                    (select xperiodo.id from account_period xperiodo 
-			                    where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
-			                    and xperiodo.name < _period_name
-			                    )
+			and line.period_id in (select pp2.id from period_ids2 pp2)
+			                    --(select xperiodo.id from account_period xperiodo 
+			                    --where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
+			                    --and xperiodo.name < _period_name
+			                    --)
 			)::float,
 			
 		debit = (select COALESCE(sum(line.debit), 0.00) 
@@ -313,19 +329,22 @@ BEGIN
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			where line.state='valid' 
 			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
-			and line.period_id in (select id from account_period where name = _period_name))::float,
+			and line.period_id in (select id from period_ids) 
+                                --(select id from account_period where name = _period_name))::float,
 		credit = (select COALESCE(sum(line.credit), 0.00) 
 			from account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			where line.state='valid' 
 			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
-			and line.period_id in (select id from account_period where name = _period_name))::float,
+			and line.period_id in (select id from period_ids)
+                                --(select id from account_period where name = _period_name))::float,
         period_id = (select distinct line.period_id
                 from account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			     where line.state='valid' 
 			     and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
-			     and line.period_id in (select id from account_period where name = _period_name)
+			     and line.period_id in (select id from period_ids)
+                                     --(select id from account_period where name = _period_name)
                  limit 1)
 		
 		
@@ -364,11 +383,11 @@ BEGIN
 				where xline.state='valid' 
 				and xline.account_id = _record4.id
                 and xline.partner_id=line.partner_id
-				and xline.period_id in 
-						    (select xperiodo.id from account_period xperiodo 
-						    where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
-						    and xperiodo.name < _period_name
-						    )
+				and xline.period_id in (select pp2.id from period_ids2 pp2)
+						    --(select xperiodo.id from account_period xperiodo 
+						    --where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
+						    --and xperiodo.name < _period_name
+						    --)
 				)::float,
 				
 				COALESCE(sum(line.debit), 0.00)::float,
@@ -377,7 +396,7 @@ BEGIN
 					inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 				where line.state='valid' 
 				and line.account_id = _record4.id
-				and line.period_id in (select id from account_period where name = _period_name)
+				and line.period_id in (select id from period_ids) --(select id from account_period where name = _period_name)
 				group by _record4.id, _record4.account_code, _record4.order_code,
                 _record4.account_name, _record4.account_level + 1, _record4.account_type, _record4.account_user_type,
                 _record4.partner_breakdown, _record4.period_name, _record4.company_name, line.partner_id;
@@ -410,13 +429,13 @@ BEGIN
 					inner join account_journal journal on line.journal_id=journal.id and journal.type <> 'situation'
 				where line.state='valid' and line.partner_id is not null
 				and line.account_id = _record4.id
-				and line.period_id in (select id from account_period where name = _period_name)
+				and line.period_id in (select id from period_ids) --(select id from account_period where name = _period_name)
 				)					
-			and xline.period_id in 
-					    (select xperiodo.id from account_period xperiodo 
-					    where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
-					    and xperiodo.name < _period_name
-					    )				
+			and xline.period_id in (select pp2.id from period_ids2 pp2)
+					    --(select xperiodo.id from account_period xperiodo 
+					    --where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
+					    --and xperiodo.name < _period_name
+					    --)				
 			group by xline.partner_id
             having (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00)) <> 0.0;
 
@@ -443,11 +462,11 @@ BEGIN
 			where xline.state='valid' 
 			and xline.account_id = _record4.id
 			and xline.partner_id is null	
-			and xline.period_id in 
-					    (select xperiodo.id from account_period xperiodo 
-					    where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
-					    and xperiodo.name < _period_name
-					    )				
+			and xline.period_id in (select pp2.id from period_ids2 pp2)
+					    --(select xperiodo.id from account_period xperiodo 
+					    --where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
+					    --and xperiodo.name < _period_name
+					    --)				
 			group by xline.partner_id
             having (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00)) <> 0.0;
 
@@ -778,7 +797,25 @@ class account_account_lines_wizard(osv.osv_memory):
                     into _period_flag_00;
 
                 select period.fiscalyear_id into _period_fiscalyear from account_period period where period.id=x_period_id_start;
-                
+
+                drop table if exists period_ids;
+                create table period_ids as
+                select ap.id
+                from account_period ap 
+                where ap.name >= _period_name_start and ap.name<=_period_name_stop
+                and ap.fiscalyear_id in (select af1.id from account_fiscalyear af1 where af1.name in 
+                                (select af2.name from account_fiscalyear af2 where af2.id=(select ap2.fiscalyear_id from account_period ap2 where ap2.name=_period_name_start limit 1)));
+
+
+                drop table if exists period_ids2;
+                create table period_ids2 as
+                select ap.id
+                from account_period ap 
+                where ap.name < _period_name_start
+                and ap.fiscalyear_id in (select af1.id from account_fiscalyear af1 where af1.name in 
+                                (select af2.name from account_fiscalyear af2 where af2.id=(select ap2.fiscalyear_id from account_period ap2 where ap2.name=_period_name_start limit 1)));
+
+
                 select                 
                     _sign * 
                     (
@@ -788,11 +825,11 @@ class account_account_lines_wizard(osv.osv_memory):
                         (CASE WHEN _period_month = 1 and not _period_flag_00 THEN journal.type <> 'situation' ELSE 1=1 END)
                     where line.state='valid' 
                     and line.account_id in (select f_account_child_ids(x_account_id) union all select f_account_child_consol_ids(x_account_id))
-                    and line.period_id in 
-                                        (select xperiodo.id from account_period xperiodo 
-                                        where xperiodo.fiscalyear_id = _period_fiscalyear
-                                        and xperiodo.name < _period_name_start
-                                        )
+                    and line.period_id in (select period_ids2.id from period_ids2)
+                                        --(select xperiodo.id from account_period xperiodo 
+                                        --where xperiodo.fiscalyear_id = _period_fiscalyear
+                                        --and xperiodo.name < _period_name_start
+                                        --)
                     """ + _partner_id_line + """
                     """ + _product_id_line + """
                     )::float
@@ -807,7 +844,7 @@ class account_account_lines_wizard(osv.osv_memory):
 
 
 	            create table hesatec_mx_auxiliar_borrame""" + str(uid) + """ AS 
-	            select move_line.id * 1000 + period.id as id, move_line.name as name, move_line.ref as ref,
+	            select move_line.id, move_line.name as name, move_line.ref as ref,
                 move.date move_date, move.name move_name, move.ref move_ref, 
                 period.name period_name, 
                 --fiscalyear.name fiscalyear_name, 
@@ -830,8 +867,9 @@ class account_account_lines_wizard(osv.osv_memory):
                     inner join account_account account on move_line.account_id = account.id
                     inner join account_account_type account_type on account.user_type = account_type.id
                     inner join account_journal journal on journal.id = move_line.journal_id and journal.type <> 'situation' 
-                    inner join account_period period on move_line.period_id=period.id and period.name >= _period_name_start
-		                                                                              and period.name  <= _period_name_stop 
+                    inner join account_period period on move_line.period_id=period.id and period.id in (select period_ids.id from period_ids)
+                                                                                      --and period.name >= _period_name_start
+		                                                                              --and period.name  <= _period_name_stop 
 	            where 
 	            move.state='posted'
 	            and move_line.state='valid'
@@ -1016,7 +1054,8 @@ class account_mx_report_definition(osv.osv):
         'report_id_label'   : fields.char('Descripcion', size=64, help="Indique la descripcion de la cuenta a mostrar en el reporte"),
         'report_id_show_result': fields.boolean('Mostrar Resultado', help="Active esta casilla si desea que se muestre el resultado del subreporte"),
         'active'            : fields.boolean('Activo'),
-
+        'account_entries'   : fields.boolean('Desglosar Movimientos'),
+        
         }
 
     _defaults = {
@@ -1059,7 +1098,7 @@ account_mx_report_definition()
 
 class account_mx_report_data(osv.osv):
     _name = "account.mx_report_data"
-    _description = "Reportes Financieros"
+    _description = "Datos para Reportes Financieros Configurables"
 
     _columns = {
         'report_id'         : fields.many2one('account.mx_report_definition', 'Reporte'),# readonly=True),
@@ -1070,19 +1109,66 @@ class account_mx_report_data(osv.osv):
         'account_sign'      : fields.float('Signo para Saldo'),# readonly=True),
         'account_code'      : fields.char('Cuenta', size=64),# readonly=True),
         'account_name'      : fields.char('Descripcion', size=128),# readonly=True),
-#        'account_id'        : fields.many2one('account.account', 'Cuenta Contable'),# readonly=True),
         'period_id'         : fields.many2one('account.period', 'Periodo'),# readonly=True),
+        'account_id'        : fields.many2one('account.account', 'Cuenta'),# readonly=True),
         'initial_balance'   : fields.float('Saldo Inicial'),# readonly=True),
         'debit'             : fields.float('Cargos'),# readonly=True),
         'credit'            : fields.float('Abonos'),# readonly=True),
         'ending_balance'    : fields.float('Saldo Acumulado'),# readonly=True),
         'debit_credit_ending_balance': fields.float('Saldo Periodo'),# readonly=True),
+        'account_entries'   : fields.boolean('Desglosar Movimientos'),
+        'account_id_line'          : fields.one2many('account.mx_report_data.line', 'data_id', 'Partidas Contables', readonly=True),
     }
     _order = 'sequence, account_code'
 
+                    
 account_mx_report_data()
+                    
+# # # # # # # # # # # # # # # # # # # # #
+class account_mx_report_data_line(osv.osv):
+    _name = "account.mx_report_data.line"
+    _description = "Reportes Financieros - Auxiliar de Cuentas"
 
 
+    _columns = {
+        'data_id'           : fields.many2one('account.mx_report_data', 'Data', readonly=True),
+        'name'              : fields.char('No se usa', size=64, readonly=True),
+        'move_id'           : fields.many2one('account.move', 'Poliza', readonly=True),
+        'user_id'           : fields.many2one('res.users', 'Usuario', readonly=True),
+        'journal_id'        : fields.many2one('account.journal', 'Diario', readonly=True),
+        'period_id'         : fields.many2one('account.period', 'Periodo', readonly=True),
+        'fiscalyear_id'     : fields.many2one('account.fiscalyear', 'Periodo Anual', readonly=True),
+        'account_id'        : fields.many2one('account.account', 'Cuenta Contable', readonly=True),
+        'account_type_id'   : fields.many2one('account.account.type', 'Tipo Cuenta', readonly=True),
+        'move_date'         : fields.date('Fecha Poliza', readonly=True),
+        'move_name'         : fields.char('Poliza No.', size=120, readonly=True),
+        'move_ref'          : fields.char('Referencia', size=120, readonly=True),
+        'period_name'       : fields.char('xPeriodo Mensual', size=120, readonly=True),
+        'fiscalyear_name'   : fields.char('xPeriodo Anual', size=120, readonly=True),
+        'account_code'      : fields.char('Codigo Cuenta', size=60, readonly=True),
+        'account_name'      : fields.char('Descripcion Cuenta', size=120, readonly=True),
+        'account_level'     : fields.integer('Nivel', readonly=True),
+        'account_type'      : fields.char('xTipo Cuenta', size=60, readonly=True),
+        'account_sign'      : fields.integer('Signo', readonly=True),
+        'journal_name'      : fields.char('xDiario', size=60, readonly=True),
+        'initial_balance'   : fields.float('Saldo Inicial', readonly=True),
+        'debit'             : fields.float('Cargos', readonly=True),
+        'credit'            : fields.float('Abonos', readonly=True),
+        'ending_balance'    : fields.float('Saldo Final', readonly=True),
+        'partner_id'        : fields.many2one('res.partner', 'Empresa', readonly=True),
+        'product_id'        : fields.many2one('product.product', 'Producto', readonly=True),
+        'qty'               : fields.float('Cantidad', readonly=True),
+        'sequence'          : fields.integer('Seq', readonly=True),
+        'amount_currency'   : fields.float('Monto M.E.', readonly=True, help="Monto en Moneda Extranjera"),
+        'currency_id'       : fields.many2one('res.currency', 'Moneda', readonly=True),
+    }
+
+    _order = 'sequence, period_name, move_date, account_code'
+
+account_mx_report_data_line()
+
+
+# # # # # # # # # # # # # # # # # # # # #
 
 class account_mx_report_data_wizard(osv.osv_memory):
     _name = "account.mx_report_data_wizard"
@@ -1093,6 +1179,7 @@ class account_mx_report_data_wizard(osv.osv_memory):
         'period_id'         : fields.many2one('account.period', 'Periodo', required=True),
         'report_type'       : fields.selection([('xls','XLS'),('pdf','PDF')
                                             ], 'Tipo'),
+        'print_detail'      : fields.boolean('Imprimir Detalle', help='Permite Imprimir en el Reporte el detalle de Movimientos.', ),
         }
 
     _defaults = {
@@ -1117,12 +1204,259 @@ class account_mx_report_data_wizard(osv.osv_memory):
         for params in self.browse(cr, uid, ids, context=context):
 
             cr.execute("""
+            
+            ---- Agregado para desglose de Partidas usado en el reporte
+            
+            drop function if exists f_get_mx_report_data_entries
+            (x_account_id integer, x_period_id_start integer, x_period_id_stop integer);
+
+            CREATE OR REPLACE FUNCTION f_get_mx_report_data_entries
+            (x_account_id integer, x_period_id_start integer, x_period_id_stop integer)
+            RETURNS TABLE(
+            id integer,
+            create_uid integer,
+            create_date date,
+            write_date date,
+            write_uid integer,
+            name varchar(64),
+            move_id integer,
+            user_id integer,
+            journal_id integer,
+            period_id integer,
+            fiscalyear_id integer,
+            account_id integer,
+            account_type_id integer,
+            move_date date,
+            move_name varchar(120),
+            move_ref varchar(120),
+            period_name  varchar(120),
+            fiscalyear_name varchar(120),
+            account_code varchar(60),
+            account_name varchar(120),
+            account_level integer,
+            account_type varchar(60),
+            account_sign integer,
+            journal_name varchar(60),
+            initial_balance float,
+            debit float, 
+            credit float,
+            ending_balance float,
+            partner_id integer,
+            product_id integer,
+            qty float,
+            sequence integer,
+            amount_currency float,
+            currency_id integer) 
+
+
+            AS
+            $BODY$
+            DECLARE
+                _cursor CURSOR FOR 
+                    SELECT zx.id, zx.initial_balance, zx.debit, zx.credit, zx.ending_balance, zx.account_sign, zx.period_name, zx.move_date 
+                        from report_data_entries zx order by zx.period_name, zx.move_date;
+                _result record;
+                last_balance float = 0;
+                orden int = 0;
+                _fiscalyear_id integer;
+            BEGIN
+
+                select fiscal.id into _fiscalyear_id
+                from account_fiscalyear fiscal where fiscal.id = (select account_period.fiscalyear_id from account_period where account_period.id = $2);
+
+
+                select 
+                case date_part('month', period.date_start)
+                    when 1 then 
+                    account_type.sign * 
+                    (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
+                    from account_move move, account_move_line line, account_journal journal
+                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
+                    and line.journal_id = journal.id and journal.type='situation'
+                    and line.period_id = period.id
+                    )
+                    else
+                        account_type.sign * 
+                        (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
+                        from account_move move, account_move_line line, account_journal journal
+                        where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
+                        and line.journal_id = journal.id --and journal.type='situation'
+                        and line.period_id in 
+                        (select xperiodo.id from account_period xperiodo 
+                          where xperiodo.fiscalyear_id=fiscalyear.id 
+                        and xperiodo.name < period.name 
+                        )
+                    )
+                    end::float
+                    --initial_balance
+                
+                from account_period period, account_fiscalyear fiscalyear,
+                account_account account,
+                account_account_type account_type
+                where account.id in (select f_account_child_ids($1))
+                and account.active = True
+                and period.id=$2
+                and account.user_type=account_type.id 
+                and period.fiscalyear_id = fiscalyear.id
+                into last_balance;
+
+                drop table if exists report_data_entries;
+
+
+                create table report_data_entries AS 
+                select move_line.id * 1000 + period.id as id, move.name as name, move.date move_date, move.name move_name, move.ref move_ref, period.name period_name, 
+                fiscalyear.name fiscalyear_name, account.code account_code, account.name account_name, account.level account_level, account_type.name account_type,  
+                account_type.sign account_sign,
+                account.id account_id, account_type.id account_type_id,
+                journal.name journal_name,
+                move.id move_id, 
+                move.create_uid user_id,
+                journal.id journal_id,
+                period.id period_id,
+                fiscalyear.id fiscalyear_id,
+                0.00::float initial_balance,
+                coalesce(move_line.debit, 0.0)::float debit,
+                coalesce(move_line.credit, 0.0)::float credit,
+                0.00::float ending_balance,
+                move_line.partner_id,
+                move_line.product_id,
+                move_line.quantity::float qty,
+                0::integer as sequence,
+                move_line.amount_currency::float amount_currency,
+                move_line.currency_id
+                from account_move move, account_move_line move_line, account_period period, account_fiscalyear fiscalyear,
+                account_account account, account_account_type account_type,  account_journal journal
+                where 
+                move.id = move_line.move_id and move.state='posted' and
+                move_line.period_id = period.id and move_line.state='valid' and
+                fiscalyear.id = period.fiscalyear_id and
+                move_line.account_id = account.id and
+                account.user_type = account_type.id and
+                journal.id = move_line.journal_id and journal.type <> 'situation' 
+                and account.id  in (select f_account_child_ids($1))
+                and period.date_start >= (select _periodo1.date_start from account_period _periodo1 where _periodo1.id=$2)
+                and period.date_stop  <= (select _periodo2.date_stop from account_period _periodo2 where _periodo2.id=$3)
+
+                order by period.name, move.date;
+
+
+
+                FOR _record IN _cursor
+                LOOP
+                    orden = orden + 1;
+                    update report_data_entries xx
+                    set sequence = orden,
+                        initial_balance = last_balance, 
+                        ending_balance = last_balance + 
+                            (xx.account_sign * (xx.debit - xx.credit))
+                    where xx.id=_record.id;
+
+                    last_balance = last_balance + (_record.account_sign * (_record.debit - _record.credit));
+                END LOOP;
+    
+                return query 
+                    select  zz.id, 
+                    zz.user_id create_uid, 
+                    current_date create_date, 
+                    current_date write_date, 
+                     zz.user_id write_uid, 
+                     zz.name, 
+                     zz.move_id, 
+                     zz.user_id, 
+                     zz.journal_id, 
+                     zz.period_id, 
+                     zz.fiscalyear_id,
+                     zz.account_id, 
+                     zz.account_type_id, 
+                     zz.move_date, 
+                     zz.move_name, 
+                     zz.move_ref, 
+                        zz.period_name, 
+                        zz.fiscalyear_name, 
+                        zz.account_code, 
+                        zz.account_name, 
+                        zz.account_level,   
+                        zz.account_type, 
+                        zz.account_sign, 
+                        zz.journal_name, 
+                        zz.initial_balance, 
+                        zz.debit, 
+                        zz.credit, 
+                        zz.ending_balance, 
+                        zz.partner_id, 
+                        zz.product_id, 
+                        zz.qty, 
+                        zz.sequence, 
+                        zz.amount_currency, 
+                        zz.currency_id
+                    from report_data_entries zz
+                    order by sequence, period_name, move_date;
+
+
+            END
+            $BODY$
+            LANGUAGE 'plpgsql' ;
+
+            -- Ejemplo de uso:
+            -- select * from f_get_mx_report_data_entries(11875, 13, 13);
+            -- Donde:
+            --      11875 = Cuenta contable (ID)
+            --      13 => ID del Periodo Inicial
+            --      13 => ID del Periodo Final
+            -----------------------------------------
+            
+                drop function if exists f_get_mx_report_data_detail_line
+                (x_report_id integer, x_period_id integer, x_uid integer, x_parent_id integer, x_parent_group varchar(64));
+
+
+                CREATE OR REPLACE FUNCTION f_get_mx_report_data_detail_line
+                --(x_report_definition_id integer)
+                ()
+                RETURNS boolean
+                AS
+                $BODY$
+
+                DECLARE
+                _cursor2 CURSOR FOR 
+                    SELECT _z.id, _z.account_id, _z.period_id
+                    from account_mx_report_data _z
+                    where _z.account_entries;
+                _result2 record;
+
+                BEGIN
+                    FOR _record2 IN _cursor2
+                    LOOP
+                        insert into account_mx_report_data_line
+                            (data_id, name, move_id, user_id, journal_id, 
+                            period_id, fiscalyear_id, account_id, account_type_id, move_date,
+                            move_name, move_ref, period_name, fiscalyear_name, account_code,
+                            account_name, account_level, account_type, account_sign, journal_name,
+                            initial_balance, debit, credit, ending_balance, partner_id,
+                            product_id, qty, sequence, amount_currency, currency_id)
+                        select 
+                            _record2.id, name, move_id, user_id, journal_id, 
+                            period_id, fiscalyear_id, account_id, account_type_id, move_date,
+                            move_name, move_ref, period_name, fiscalyear_name, account_code,
+                            account_name, account_level, account_type, account_sign, journal_name,
+                            initial_balance, debit, credit, ending_balance, partner_id,
+                            product_id, qty, sequence, amount_currency, currency_id
+                            from f_get_mx_report_data_entries(_record2.account_id, _record2.period_id, _record2.period_id);
+                    END LOOP;
+
+                    return true;
+
+                END
+                $BODY$
+                LANGUAGE 'plpgsql';
+            
+            
                 drop function if exists f_get_mx_report_data_detail
                 (x_report_id integer, x_period_id integer, x_uid integer, x_parent_id integer, x_parent_group varchar(64));
 
 
                 CREATE OR REPLACE FUNCTION f_get_mx_report_data_detail
-                (x_report_id integer, x_period_id integer, x_uid integer, x_parent_id integer, x_parent_group varchar(64))
+                (x_report_id integer, x_period_id integer, x_uid integer, 
+                x_parent_id integer, x_parent_group varchar(64))
                 RETURNS TABLE
                 (
                 create_uid integer,
@@ -1135,93 +1469,86 @@ class account_mx_report_data_wizard(osv.osv_memory):
                 sequence integer,
                 report_sign float,
                 account_sign float,
+                account_id integer,
                 account_code varchar(64),
                 account_name varchar(128),
                 period_id integer,
                 initial_balance float,
                 debit float, 
-                credit float) 
+                credit float, 
+                account_entries boolean) 
 
                 AS
                 $BODY$
 
+                BEGIN
 
-              DECLARE
-                  _period_month integer;
-                  _period_name varchar(64);
-                  _period_fiscalyear integer;
-
-
-              BEGIN
-                  select date_part('month', date_start)::integer, name, fiscalyear_id into _period_month, _period_name, _period_fiscalyear 
-                  from account_period where id=x_period_id;
-
-                  drop table if exists _periodos;
-                  create table _periodos as
-                  select xperiodo.id from account_period xperiodo 
-                  where xperiodo.fiscalyear_id= (select fiscalyear.id from account_fiscalyear fiscalyear where _period_fiscalyear = fiscalyear.id)
-                  and xperiodo.name < _period_name; 
                     return query 
-	                select 
-	                    x_uid, LOCALTIMESTAMP, LOCALTIMESTAMP, x_uid,
-	                    subreport.parent_id,
-	                    case char_length(x_parent_group) 
-	                    when 0 then subreport.internal_group 
-	                    else x_parent_group
-	                    end,
-	                    subreport.name,
-	                    subreport.sequence,
-	                    case subreport.sign
-	                    when 'positive' then 1.0
-	                    else -1.0
-	                    end::float,
-	                    account_type.sign::float, 
+                    select 
+                        x_uid, LOCALTIMESTAMP, LOCALTIMESTAMP, x_uid,
+                        subreport.parent_id,
+                        case char_length(x_parent_group) 
+                        when 0 then subreport.internal_group 
+                        else x_parent_group
+                        end,
+                        subreport.name,
+                        subreport.sequence,
+                        case subreport.sign
+                        when 'positive' then 1.0
+                        else -1.0
+                        end::float,
+                        account_type.sign::float, 
+                        account.id,
+                        account.code, 
+                        account.name, 
+                        period.id,
 
-	                    account.code, 
-	                    account.name, 
-	                    x_period_id,
-
-	                    case _period_month
-	                    when 1 then 
-		                    account_type.sign * 
-		                    (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
-		                    from account_move move, account_move_line line, account_journal journal
-		                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-		                    and line.journal_id = journal.id and journal.type='situation'
-		                    and line.period_id = x_period_id
-		                    )
-	                    else
-		                    account_type.sign * 
-		                    (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
-		                    from account_move move, account_move_line line, account_journal journal
-		                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-		                    and line.journal_id = journal.id 
-		                    and line.period_id in (select id from _periodos)
+                        case date_part('month', period.date_start)
+                        when 1 then 
+                            account_type.sign * 
+                            (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
+                            from account_move move, account_move_line line, account_journal journal
+                            where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
+                            and line.journal_id = journal.id and journal.type='situation'
+                            and line.period_id = period.id
                             )
-	                    end::float,
-	                    (select COALESCE(sum(line.debit), 0.00) 
-	                    from account_move move, account_move_line line, account_journal journal
-	                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-	                    and line.journal_id = journal.id and journal.type<>'situation'
-	                    and line.period_id = x_period_id)::float
-	                    ,
-	                    (select COALESCE(sum(line.credit), 0.00) 
-	                    from account_move move, account_move_line line, account_journal journal
-	                    where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
-	                    and line.journal_id = journal.id and journal.type<>'situation'
-	                    and line.period_id = x_period_id)::float
-	                    
-	                    from --account_period period, 
-	                    account_mx_report_definition subreport 
-		                    left join account_account_mx_reports_rel subreport_accounts on subreport_accounts.mx_report_definition_id = subreport.id
-		                    left join account_account account on subreport_accounts.account_id = account.id
-		                    left join account_account_type account_type on account.user_type=account_type.id	
-	                    where --period.id=x_period_id and
-	                    case x_parent_id 
-	                       when 0 then subreport.id = x_report_id
-	                       else subreport.parent_id = x_parent_id
-	                    end
-	                    order by subreport.parent_id, subreport.sequence, account.code;
+                        else
+                            account_type.sign * 
+                            (select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
+                            from account_move move, account_move_line line, account_journal journal
+                            where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
+                            and line.journal_id = journal.id 
+                            and line.period_id in 
+                                (select xperiodo.id from account_period xperiodo 
+                                where xperiodo.fiscalyear_id= (select fiscalyear.id from account_fiscalyear fiscalyear where period.fiscalyear_id = fiscalyear.id)
+                                and xperiodo.name < period.name 
+                                )
+                            )
+                        end::float,
+                        (select COALESCE(sum(line.debit), 0.00) 
+                        from account_move move, account_move_line line, account_journal journal
+                        where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
+                        and line.journal_id = journal.id and journal.type<>'situation'
+                        and line.period_id = period.id)::float
+                        ,
+                        (select COALESCE(sum(line.credit), 0.00) 
+                        from account_move move, account_move_line line, account_journal journal
+                        where move.id = line.move_id and move.state='posted' and line.state='valid' and line.account_id in (select f_account_child_ids(account.id))
+                        and line.journal_id = journal.id and journal.type<>'situation'
+                        and line.period_id = period.id)::float,
+                        subreport.account_entries
+                        
+                        from account_period period, 
+                        account_mx_report_definition subreport 
+                            left join account_account_mx_reports_rel subreport_accounts on subreport_accounts.mx_report_definition_id = subreport.id
+                            left join account_account account on subreport_accounts.account_id = account.id
+                            left join account_account_type account_type on account.user_type=account_type.id    
+                        where period.id=x_period_id and
+                        case x_parent_id 
+                        when 0 then subreport.id = x_report_id
+                        else subreport.parent_id = x_parent_id
+                        end
+                        order by subreport.parent_id, subreport.sequence, account.code;
 
 
 
@@ -1245,82 +1572,83 @@ class account_mx_report_data_wizard(osv.osv_memory):
 
                 DECLARE
                 _cursor CURSOR FOR 
-	                SELECT _a.id, _a.report_id, _a.parent_id, _a.name as report_section, case _a.sign when 'positive' then 1.0::float else -1.00::float end sign,
-	                _a.sequence, _a.report_id_use_resume, _a.report_id_account, _a.report_id_label, _a.report_id_show_result, _a.internal_group	    
-	                from account_mx_report_definition _a 
-		                where _a.parent_id = x_report_id 
-		                order by _a.sequence;
+                    SELECT _a.id, _a.report_id, _a.parent_id, _a.name as report_section, case _a.sign when 'positive' then 1.0::float else -1.00::float end sign,
+                    _a.sequence, _a.report_id_use_resume, _a.report_id_account, _a.report_id_label, _a.report_id_show_result, _a.internal_group     
+                    from account_mx_report_definition _a 
+                        where _a.parent_id = x_report_id 
+                        order by _a.sequence;
                 _result record;
 
                 BEGIN
-                    delete from account_mx_report_data;	
+                    delete from account_mx_report_data;
+                    delete from account_mx_report_data_line;
                     FOR _record IN _cursor
                     LOOP
-	                    insert into account_mx_report_data
-	                    (
-		                    create_uid, create_date, write_date, write_uid,
-	                    report_id, report_group, report_section, sequence, report_sign, account_sign, 
-	                    account_code, account_name, --account_id, 
-	                    period_id, 
-	                    initial_balance, debit, credit, ending_balance, debit_credit_ending_balance
-			                )
+                        insert into account_mx_report_data
+                        (
+                            create_uid, create_date, write_date, write_uid,
+                        report_id, report_group, report_section, sequence, report_sign, account_sign, 
+                        account_code, account_name, account_id, account_entries,
+                        period_id, 
+                        initial_balance, debit, credit, ending_balance, debit_credit_ending_balance
+                            )
 
-	                    select 
-	                    create_uid, create_date, write_date, write_uid,
-	                    report_id, report_group, report_section, sequence, report_sign, account_sign, 
-	                    account_code, account_name, --account_id, 
-	                    period_id, 
-	                    initial_balance, debit, credit,
-	                    (initial_balance  + account_sign * (debit - credit)) ending_balance,
-	                    (account_sign * (debit - credit)) debit_credit_ending_balance
-	                    from f_get_mx_report_data_detail(_record.id, x_period_id, x_uid, 0, '');
-	                    
-	                    IF _record.report_id is not null THEN
-			                --RAISE NOTICE 'Hay un subreporte para % y la casilla resumido está en %', _record.report_section, _record.report_id_use_resume;
-	
-		                    IF not _record.report_id_use_resume THEN
-			                    --RAISE NOTICE 'Entramos a generar el detalle del subreporte';
-			                    insert into account_mx_report_data
-			                    (
-			                    create_uid, create_date, write_date, write_uid,
-			                    report_id, report_group, report_section, sequence, report_sign, account_sign, 
-			                    account_code, account_name, --account_id, 
-			                    period_id, 
-			                    initial_balance, debit, credit, ending_balance, debit_credit_ending_balance
-			                    )
-			                    select 
-			                    create_uid, create_date, write_date, write_uid,
-			                    report_id, report_group, report_section, sequence, report_sign, account_sign, 
-			                    account_code, account_name, --account_id, 
-			                    period_id, 
-			                    initial_balance, debit, credit,
-			                    (initial_balance  + account_sign * (debit - credit)) ending_balance,
-			                    (account_sign * (debit - credit)) debit_credit_ending_balance				
-			                    from f_get_mx_report_data_detail(0, x_period_id, x_uid, _record.report_id, _record.internal_group);
-		                    ELSE
-			                    --RAISE NOTICE 'Generando solo el resultado del subreporte';
-			                    insert into account_mx_report_data
-			                    (
-			                    create_uid, create_date, write_date, write_uid,
-			                    report_id, report_group, report_section, sequence, report_sign, account_sign, 
-			                    account_code, account_name, --account_id, 
-			                    period_id, 
-			                    initial_balance, debit, credit, ending_balance, debit_credit_ending_balance
-			                    )
-			                    select 
-			                    create_uid, create_date, write_date, write_uid,
-			                    _record.parent_id as report_id, report_group, _record.report_section report_section, _record.sequence as sequence, _record.sign as report_sign, 1 as account_sign, 
-			                    _record.report_id_account::varchar(64) as account_code, _record.report_id_label::varchar(64) as account_name, period_id, 
-			                    --sum(initial_balance) initial_balance, sum(debit) debit, sum(credit) credit,
-	                    sum(initial_balance * report_sign) as initial_balance, 0.0::float as debit, 0.0::float as credit,
-			                    sum(report_sign * (initial_balance  + account_sign * (debit - credit))) ending_balance,
-			                    sum(report_sign * account_sign * (debit - credit)) debit_credit_ending_balance
-			                    from f_get_mx_report_data_detail(0, x_period_id, x_uid, _record.report_id, _record.internal_group)
-			                    group by 
-			                    create_uid, create_date, write_date, write_uid,
-			                    report_id, report_group, period_id;			
-		                    END IF;
-	                    END IF;
+                        select 
+                        create_uid, create_date, write_date, write_uid,
+                        report_id, report_group, report_section, sequence, report_sign, account_sign, 
+                        account_code, account_name, account_id, account_entries,
+                        period_id, 
+                        initial_balance, debit, credit,
+                        (initial_balance  + account_sign * (debit - credit)) ending_balance,
+                        (account_sign * (debit - credit)) debit_credit_ending_balance
+                        from f_get_mx_report_data_detail(_record.id, x_period_id, x_uid, 0, '');
+                        
+                        IF _record.report_id is not null THEN
+                            --RAISE NOTICE 'Hay un subreporte para % y la casilla resumido está en %', _record.report_section, _record.report_id_use_resume;
+    
+                            IF not _record.report_id_use_resume THEN
+                                --RAISE NOTICE 'Entramos a generar el detalle del subreporte';
+                                insert into account_mx_report_data
+                                (
+                                create_uid, create_date, write_date, write_uid,
+                                report_id, report_group, report_section, sequence, report_sign, account_sign, 
+                                account_code, account_name, --account_id, 
+                                period_id, 
+                                initial_balance, debit, credit, ending_balance, debit_credit_ending_balance
+                                )
+                                select 
+                                create_uid, create_date, write_date, write_uid,
+                                report_id, report_group, report_section, sequence, report_sign, account_sign, 
+                                account_code, account_name, --account_id, 
+                                period_id, 
+                                initial_balance, debit, credit,
+                                (initial_balance  + account_sign * (debit - credit)) ending_balance,
+                                (account_sign * (debit - credit)) debit_credit_ending_balance               
+                                from f_get_mx_report_data_detail(0, x_period_id, x_uid, _record.report_id, _record.internal_group);
+                            ELSE
+                                --RAISE NOTICE 'Generando solo el resultado del subreporte';
+                                insert into account_mx_report_data
+                                (
+                                create_uid, create_date, write_date, write_uid,
+                                report_id, report_group, report_section, sequence, report_sign, account_sign, 
+                                account_code, account_name, --account_id, 
+                                period_id, 
+                                initial_balance, debit, credit, ending_balance, debit_credit_ending_balance
+                                )
+                                select 
+                                create_uid, create_date, write_date, write_uid,
+                                _record.parent_id as report_id, report_group, _record.report_section report_section, _record.sequence as sequence, _record.sign as report_sign, 1 as account_sign, 
+                                _record.report_id_account::varchar(64) as account_code, _record.report_id_label::varchar(64) as account_name, period_id, 
+                                --sum(initial_balance) initial_balance, sum(debit) debit, sum(credit) credit,
+                               sum(initial_balance * report_sign) as initial_balance, 0.0::float as debit, 0.0::float as credit,
+                                sum(report_sign * (initial_balance  + account_sign * (debit - credit))) ending_balance,
+                                sum(report_sign * account_sign * (debit - credit)) debit_credit_ending_balance
+                                from f_get_mx_report_data_detail(0, x_period_id, x_uid, _record.report_id, _record.internal_group)
+                                group by 
+                                create_uid, create_date, write_date, write_uid,
+                                report_id, report_group, period_id;         
+                            END IF;
+                        END IF;
 
                     END LOOP;
 
@@ -1329,7 +1657,6 @@ class account_mx_report_data_wizard(osv.osv_memory):
                 END
                 $BODY$
                 LANGUAGE 'plpgsql';
-    
                 select * from f_get_mx_report_data(""" + str(params.report_id.id) + "," + str(params.period_id.id) + "," +  str(uid) + ")")
 
             data = filter(None, map(lambda x:x[0], cr.fetchall()))
@@ -1338,23 +1665,242 @@ class account_mx_report_data_wizard(osv.osv_memory):
                         _('Error en script!'),
                         _('No se pudo generar la informacion para este reporte, por favor verifique su configuracion y vuelva a intentarlo'))
 
-
+            cr.execute("select * from f_get_mx_report_data_detail_line();")
             values = self.pool.get('account.mx_report_data').search(cr, uid, [('id', '!=', 0)])
+            ################### REPORTE JASPER REPORTS >>>>>>>>>>>>>>>
+            # cr.execute('delete from print_move_jasper_mx;')
+            # report_jasper_id = self.pool.get('print.move.jasper.mx').create(cr, uid, {}, context=None)
+            # print "################ REPORTE >>>>>>> jasper >> ", report_jasper_id
+            
+            if values:
+                report_mx = self.pool.get('account.mx_report_data')
+                initial_balance_global = 0.0
+                debit_global = 0.0
+                credit_global = 0.0
+                ending_balance_global = 0.0
+                debit_credit_ending_balance_global = 0.0
+                report_group_list = []
+                cr.execute("select report_group from account_mx_report_data;")
+                report_group_cr = cr.fetchall()
+                for rp in report_group_cr:
+                    if rp[0] not in report_group_list:
+                        report_group_list.append(rp[0])
+                if  params.print_detail:
+                    for report in report_group_list:
+                        ids_to_update = report_mx.search(cr, uid, [('report_group','=',str(report))])
 
-            value = {
-                'type'          : 'ir.actions.report.xml',
-                'report_name'   : 'ht_reportes_contables_pdf' if params.report_type == 'pdf' else 'ht_reportes_contables_xls',
-#                'jasper_output' : params.report_type,
-                'datas'         : {
-                                    'model' : 'account.mx_report_data',
-                                    'ids'   : values,
-#                                    'report_type'   : params.report_type,
-#                                    'jasper_output' : params.report_type,
-                                    }
-                    } 
+                        initial_balance = 0.0
+                        debit = 0.0
+                        credit = 0.0
+                        ending_balance = 0.0
+                        debit_credit_ending_balance = 0.0
+
+                        cr.execute("""select sum(initial_balance) from account_mx_report_data where id in %s""",(tuple(ids_to_update),))
+                        initial_balance_cr = cr.fetchall()
+                        if initial_balance_cr:
+                            initial_balance = initial_balance_cr[0][0] if initial_balance_cr[0][0] != None else 0.0
+                        cr.execute("""select sum(debit) from account_mx_report_data where id in %s""" ,(tuple(ids_to_update),))
+                        debit_cr = cr.fetchall()
+                        if debit_cr:
+                            debit = debit_cr[0][0] if debit_cr[0][0] != None else 0.0
+                        cr.execute("""select sum(credit) from account_mx_report_data where id in %s""" ,(tuple(ids_to_update),))
+                        credit_cr = cr.fetchall()
+                        if credit_cr:
+                            credit = credit_cr[0][0] if credit_cr[0][0] != None else 0.0
+                        cr.execute("""select sum(ending_balance) from account_mx_report_data where id in %s""" ,(tuple(ids_to_update),))
+                        ending_balance_cr = cr.fetchall()
+                        if ending_balance_cr:
+                            ending_balance = ending_balance_cr[0][0] if ending_balance_cr[0][0] != None else 0.0
+                        
+                        cr.execute("""select sum(debit_credit_ending_balance) from account_mx_report_data where id in %s""" ,(tuple(ids_to_update),))
+                        debit_credit_ending_balance_cr = cr.fetchall()
+                        if debit_credit_ending_balance_cr:
+                            debit_credit_ending_balance = debit_credit_ending_balance_cr[0][0] if debit_credit_ending_balance_cr[0][0] != None else 0.0
+                        # for line in report.account_id_line:
+                        #     initial_balance += line.initial_balance
+                        #     debit += line.debit
+                        #     credit += line.credit
+                        #     ending_balance += line.ending_balance
+
+                        # report.write({'jasper_report_id':report_jasper_id,
+                        report_mx.write(cr, uid, ids_to_update,{
+                            'initial_balance_sum': initial_balance,
+                            'debit_sum': debit,
+                            'credit_sum': credit,
+                            'ending_balance_sum': ending_balance,
+                            'debit_credit_ending_balance_sum': debit_credit_ending_balance,
+                            }, context=None)
+                        ############### GLOBALES
+                    ########## ACTUALIZANDO LOS DATOS GLOBALES
+                    cr.execute("""select sum(initial_balance*report_sign) from account_mx_report_data where id in %s""",(tuple(values),))
+                    initial_balance_global_cr = cr.fetchall()
+                    if initial_balance_global_cr:
+                        initial_balance_global = initial_balance_global_cr[0][0] if initial_balance_global_cr[0][0] != None else 0.0
+                    cr.execute("""select sum(debit*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    debit_global_cr = cr.fetchall()
+                    if debit_global_cr:
+                        debit_global = debit_global_cr[0][0] if debit_global_cr[0][0] != None else 0.0
+                    cr.execute("""select sum(credit*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    credit_global_cr = cr.fetchall()
+                    if credit_global_cr:
+                        credit_global = credit_global_cr[0][0] if credit_global_cr[0][0] != None else 0.0
+                    cr.execute("""select sum(ending_balance*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    ending_balance_global_cr = cr.fetchall()
+                    if ending_balance_global_cr:
+                        ending_balance_global = ending_balance_global_cr[0][0] if ending_balance_global_cr[0][0] != None else 0.0
+                    
+                    cr.execute("""select sum(debit_credit_ending_balance*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    debit_credit_ending_balance_global_cr = cr.fetchall()
+                    if debit_credit_ending_balance_global_cr:
+                        debit_credit_ending_balance_global = debit_credit_ending_balance_global_cr[0][0] if debit_credit_ending_balance_global_cr[0][0] != None else 0.0
+                    report_mx.write(cr, uid, values, {
+                        'initial_balance_global': initial_balance_global,
+                        'debit_global': debit_global,
+                        'credit_global': credit_global,
+                        'ending_balance_global': ending_balance_global,
+                        'debit_credit_ending_balance_global': debit_credit_ending_balance_global,
+                        }, context=None)
+
+
+                    # for report in report_mx.browse(cr, uid, values, context=None):
+                    #     initial_balance = 0.0
+                    #     debit = 0.0
+                    #     credit = 0.0
+                    #     ending_balance = 0.0
+                    #     debit_credit_ending_balance = 0.0
+
+                    #     cr.execute("""select sum(initial_balance) from account_mx_report_data where report_group = %s and id in %s""",(report.report_group,tuple(values)))
+                    #     initial_balance_cr = cr.fetchall()
+                    #     if initial_balance_cr:
+                    #         initial_balance = initial_balance_cr[0][0] if initial_balance_cr[0][0] != None else 0.0
+                    #     cr.execute("""select sum(debit) from account_mx_report_data where report_group = %s and id in %s""" ,(report.report_group,tuple(values)))
+                    #     debit_cr = cr.fetchall()
+                    #     if debit_cr:
+                    #         debit = debit_cr[0][0] if debit_cr[0][0] != None else 0.0
+                    #     cr.execute("""select sum(credit) from account_mx_report_data where report_group = %s and id in %s""" ,(report.report_group,tuple(values)))
+                    #     credit_cr = cr.fetchall()
+                    #     if credit_cr:
+                    #         credit = credit_cr[0][0] if credit_cr[0][0] != None else 0.0
+                    #     cr.execute("""select sum(ending_balance) from account_mx_report_data where report_group = %s and id in %s""" ,(report.report_group,tuple(values)))
+                    #     ending_balance_cr = cr.fetchall()
+                    #     if ending_balance_cr:
+                    #         ending_balance = ending_balance_cr[0][0] if ending_balance_cr[0][0] != None else 0.0
+                        
+                    #     cr.execute("""select sum(debit_credit_ending_balance) from account_mx_report_data where report_group = %s and id in %s""" ,(report.report_group,tuple(values)))
+                    #     debit_credit_ending_balance_cr = cr.fetchall()
+                    #     if debit_credit_ending_balance_cr:
+                    #         debit_credit_ending_balance = debit_credit_ending_balance_cr[0][0] if debit_credit_ending_balance_cr[0][0] != None else 0.0
+                    #     # for line in report.account_id_line:
+                    #     #     initial_balance += line.initial_balance
+                    #     #     debit += line.debit
+                    #     #     credit += line.credit
+                    #     #     ending_balance += line.ending_balance
+
+                    #     # report.write({'jasper_report_id':report_jasper_id,
+                    #     report.write({
+                    #         'initial_balance_sum': initial_balance,
+                    #         'debit_sum': debit,
+                    #         'credit_sum': credit,
+                    #         'ending_balance_sum': ending_balance,
+                    #         'debit_credit_ending_balance_sum': debit_credit_ending_balance,
+                    #         })
+                    #     ############### GLOBALES
+
+                    #     cr.execute("""select sum(initial_balance*report_sign) from account_mx_report_data where id in %s""",(tuple(values),))
+                    #     initial_balance_global_cr = cr.fetchall()
+                    #     if initial_balance_global_cr:
+                    #         initial_balance_global = initial_balance_global_cr[0][0] if initial_balance_global_cr[0][0] != None else 0.0
+                    #     cr.execute("""select sum(debit*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    #     debit_global_cr = cr.fetchall()
+                    #     if debit_global_cr:
+                    #         debit_global = debit_global_cr[0][0] if debit_global_cr[0][0] != None else 0.0
+                    #     cr.execute("""select sum(credit*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    #     credit_global_cr = cr.fetchall()
+                    #     if credit_global_cr:
+                    #         credit_global = credit_global_cr[0][0] if credit_global_cr[0][0] != None else 0.0
+                    #     cr.execute("""select sum(ending_balance*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    #     ending_balance_global_cr = cr.fetchall()
+                    #     if ending_balance_global_cr:
+                    #         ending_balance_global = ending_balance_global_cr[0][0] if ending_balance_global_cr[0][0] != None else 0.0
+                        
+                    #     cr.execute("""select sum(debit_credit_ending_balance*report_sign) from account_mx_report_data where id in %s""" ,(tuple(values),))
+                    #     debit_credit_ending_balance_global_cr = cr.fetchall()
+                    #     if debit_credit_ending_balance_global_cr:
+                    #         debit_credit_ending_balance_global = debit_credit_ending_balance_global_cr[0][0] if debit_credit_ending_balance_global_cr[0][0] != None else 0.0
+                    #     report_mx.write(cr, uid, values, {
+                    #         'initial_balance_global': initial_balance_global,
+                    #         'debit_global': debit_global,
+                    #         'credit_global': credit_global,
+                    #         'ending_balance_global': ending_balance_global,
+                    #         'debit_credit_ending_balance_global': debit_credit_ending_balance_global,
+                    #         }, context=None)
+
+                    value = {
+                        'type'          : 'ir.actions.report.xml',
+                        'report_name'   : 'ht_reportes_contables_pdf' if params.report_type == 'pdf' else 'ht_reportes_contables_xls',
+        #                'jasper_output' : params.report_type,
+                        'datas'         : {
+                                            'model' : 'account.mx_report_data',
+                                            'ids'   : values,
+        #                                    'report_type'   : params.report_type,
+        #                                    'jasper_output' : params.report_type,
+                                            }
+                            }
+                else:
+                    value = {
+                            'type'          : 'ir.actions.report.xml',
+                            'report_name'   : 'ht_reportes_contables_pdf_not_detail' if params.report_type == 'pdf' else 'ht_reportes_contables_xls_not_detail',
+            #                'jasper_output' : params.report_type,
+                            'datas'         : {
+                                                'model' : 'account.mx_report_data',
+                                                'ids'   : values,
+            #                                    'report_type'   : params.report_type,
+            #                                    'jasper_output' : params.report_type,
+                                                }
+                                } 
 
         return value
 account_mx_report_data_wizard()
+
+# class print_move_jasper_mx(osv.osv):
+#     _name = 'print.move.jasper.mx'
+#     _description = 'Tabla con las Polizas'
+#     _rec_name = 'company_id' 
+#     _columns = {
+#         'company_id': fields.many2one('res.company','Compañia'),
+#         'move_ids': fields.one2many('account.mx_report_data','jasper_report_id','Lineas Reporte Configurable'),
+#         # 'credit_amount': fields.float('Total Credit', digits=(14,2)),
+#         # 'debit_amount': fields.float('Total Debit', digits=(14,2)),
+
+#     }
+
+#     def _get_company(self, cr, uid, context=None):
+#         company_id = False
+#         user_obj = self.pool.get('res.users')
+#         user_br = user_obj.browse(cr, uid, uid, context=None)
+#         company_id = user_br.company_id.id
+#         return company_id
+
+#     _defaults = { 
+#         'company_id': _get_company,
+#         }
+
+class account_mx_report_data(osv.osv):
+    _name = "account.mx_report_data"
+    _inherit ='account.mx_report_data'
+    _columns = {
+        # 'jasper_report_id': fields.many2one('print.move.jasper.mx', 'ID Ref'),
+        'initial_balance_sum': fields.float('Saldo Inicial', digits=(14,2)),
+        'debit_sum': fields.float('Cargos', digits=(14,2)),
+        'credit_sum': fields.float('Abonos', digits=(14,2)),
+        'ending_balance_sum': fields.float('Saldo Final', digits=(14,2)),
+        'debit_credit_ending_balance_sum': fields.float('Saldo del Periodo', digits=(14,2)),
+        'initial_balance_global': fields.float('Saldo Inicial Global', digits=(14,2)),
+        'debit_global': fields.float('Cargos Global', digits=(14,2)),
+        'credit_global': fields.float('Abonos Global', digits=(14,2)),
+        'ending_balance_global': fields.float('Saldo Final Global', digits=(14,2)),
+        'debit_credit_ending_balance_global': fields.float('Saldo del Periodo Global', digits=(14,2)),
+        }
 
 
 

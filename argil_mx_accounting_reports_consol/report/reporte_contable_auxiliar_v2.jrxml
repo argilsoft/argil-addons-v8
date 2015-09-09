@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reporte_contable_auxiliar_v2" language="groovy" pageWidth="612" pageHeight="792" columnWidth="612" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="299"/>
+	<property name="ireport.y" value="0"/>
+	<property name="OPENERP_RELATIONS" value="[&apos;account_id_line&apos;]"/>
+	<queryString language="xPath">
+		<![CDATA[]]>
+	</queryString>
+	<field name="desglosar_partidas" class="java.lang.Boolean">
+		<fieldDescription><![CDATA[/data/record/account_entries]]></fieldDescription>
+	</field>
+	<field name="Diario_Contable" class="java.lang.String">
+		<fieldDescription><![CDATA[/data/record/account_id_line/journal_id/name]]></fieldDescription>
+	</field>
+	<field name="Fecha_Poliza" class="java.util.Date">
+		<fieldDescription><![CDATA[/data/record/account_id_line/move_date]]></fieldDescription>
+	</field>
+	<field name="Empresa" class="java.lang.String">
+		<fieldDescription><![CDATA[/data/record/account_id_line/partner_id/name]]></fieldDescription>
+	</field>
+	<field name="Poliza_Referencia" class="java.lang.String">
+		<fieldDescription><![CDATA[/data/record/account_id_line/move_ref]]></fieldDescription>
+	</field>
+	<field name="Saldo_Inicial" class="java.lang.Number">
+		<fieldDescription><![CDATA[/data/record/account_id_line/initial_balance]]></fieldDescription>
+	</field>
+	<field name="Cargos" class="java.lang.Number">
+		<fieldDescription><![CDATA[/data/record/account_id_line/debit]]></fieldDescription>
+	</field>
+	<field name="Abonos" class="java.lang.Number">
+		<fieldDescription><![CDATA[/data/record/account_id_line/credit]]></fieldDescription>
+	</field>
+	<field name="Saldo_Final" class="java.lang.Number">
+		<fieldDescription><![CDATA[/data/record/account_id_line/ending_balance]]></fieldDescription>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="13" splitType="Stretch">
+			<staticText>
+				<reportElement x="442" y="1" width="65" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Abonos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="1" width="50" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="150" y="1" width="84" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Empresa]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="572" height="1" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineStyle="Dashed" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="12" width="572" height="1" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineStyle="Dashed" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="377" y="1" width="65" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Cargos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="1" width="100" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Diario Contable]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="234" y="1" width="78" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Referencia]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="312" y="1" width="65" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Saldo Inicial]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="507" y="1" width="65" height="10" isRemoveLineWhenBlank="true" forecolor="#666666">
+					<printWhenExpression><![CDATA[$F{desglosar_partidas}]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Saldo Final]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{Fecha_Poliza} != null]]></printWhenExpression>
+			<textField>
+				<reportElement x="0" y="0" width="100" height="20" forecolor="#666666"/>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Diario_Contable}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="100" y="0" width="50" height="10" forecolor="#666666"/>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{Fecha_Poliza}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="0" width="84" height="20" forecolor="#666666"/>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Empresa}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="234" y="0" width="78" height="20" forecolor="#666666"/>
+				<textElement textAlignment="Center">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Poliza_Referencia}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+				<reportElement x="312" y="0" width="65" height="10" forecolor="#666666"/>
+				<textElement textAlignment="Right">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Saldo_Inicial}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+				<reportElement x="377" y="0" width="65" height="10" forecolor="#666666"/>
+				<textElement textAlignment="Right">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Cargos}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+				<reportElement x="442" y="0" width="65" height="10" forecolor="#666666"/>
+				<textElement textAlignment="Right">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Abonos}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+				<reportElement x="507" y="0" width="65" height="10" forecolor="#666666"/>
+				<textElement textAlignment="Right">
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Saldo_Final}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reporte_contable_v2" language="groovy" pageWidth="612" pageHeight="792" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-	<property name="ireport.zoom" value="2.0000000000000027"/>
-	<property name="ireport.x" value="34"/>
-	<property name="ireport.y" value="323"/>
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="95"/>
 	<property name="OPENERP_RELATIONS" value="[&apos;account_id_line&apos;]"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["/Users/israelca/opt/openerp/7openerp/hesatec_mx_accounting_reports_v7/report/"]]></defaultValueExpression>
@@ -128,34 +128,37 @@
 	<field name="Saldo_Final_1" class="java.lang.Number">
 		<fieldDescription><![CDATA[/data/record/account_id_line/ending_balance]]></fieldDescription>
 	</field>
-	<field name="Saldo_Final-ending_balance_sum" class="java.lang.Number">
+	<field name="Saldo_Acumulado-ending_balance2" class="java.lang.Double">
+		<fieldDescription><![CDATA[/data/record/Saldo_Acumulado-ending_balance]]></fieldDescription>
+	</field>
+	<field name="Saldo_Final-ending_balance_sum" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Saldo_Final-ending_balance_sum]]></fieldDescription>
 	</field>
-	<field name="Saldo_Inicial-initial_balance_sum" class="java.lang.Number">
+	<field name="Saldo_Inicial-initial_balance_sum" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Saldo_Inicial-initial_balance_sum]]></fieldDescription>
 	</field>
-	<field name="Abonos-credit_sum" class="java.lang.Number">
+	<field name="Abonos-credit_sum" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Abonos-credit_sum]]></fieldDescription>
 	</field>
-	<field name="Cargos-debit_sum" class="java.lang.Number">
+	<field name="Cargos-debit_sum" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Cargos-debit_sum]]></fieldDescription>
 	</field>
-	<field name="Saldo_del_Periodo-debit_credit_ending_balance_sum" class="java.lang.Number">
+	<field name="Saldo_del_Periodo-debit_credit_ending_balance_sum" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Saldo_del_Periodo-debit_credit_ending_balance_sum]]></fieldDescription>
 	</field>
-	<field name="Abonos_Global-credit_global" class="java.lang.Number">
+	<field name="Abonos_Global-credit_global" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Abonos_Global-credit_global]]></fieldDescription>
 	</field>
-	<field name="Saldo_del_Periodo_Global-debit_credit_ending_balance_global" class="java.lang.Number">
+	<field name="Saldo_del_Periodo_Global-debit_credit_ending_balance_global" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Saldo_del_Periodo_Global-debit_credit_ending_balance_global]]></fieldDescription>
 	</field>
-	<field name="Cargos_Global-debit_global" class="java.lang.Number">
+	<field name="Cargos_Global-debit_global" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Cargos_Global-debit_global]]></fieldDescription>
 	</field>
-	<field name="Saldo_Final_Global-ending_balance_global" class="java.lang.Number">
+	<field name="Saldo_Final_Global-ending_balance_global" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Saldo_Final_Global-ending_balance_global]]></fieldDescription>
 	</field>
-	<field name="Saldo_Inicial_Global-initial_balance_global" class="java.lang.Number">
+	<field name="Saldo_Inicial_Global-initial_balance_global" class="java.lang.Float">
 		<fieldDescription><![CDATA[/data/record/Saldo_Inicial_Global-initial_balance_global]]></fieldDescription>
 	</field>
 	<variable name="Saldo_Periodo-debit_credit_ending_balance_1" class="java.lang.Number" resetType="Group" resetGroup="Seccion de Cuentas" calculation="Sum">
@@ -206,7 +209,7 @@
 	<group name="Grupo de Cuentas">
 		<groupExpression><![CDATA[$F{Seccion-report_group}]]></groupExpression>
 		<groupHeader>
-			<band height="29">
+			<band height="30">
 				<printWhenExpression><![CDATA[$F{Titulo_de_Grupo-print_group_sum}]]></printWhenExpression>
 				<textField>
 					<reportElement x="0" y="6" width="292" height="20"/>
@@ -232,40 +235,40 @@
 						<pen lineStyle="Double"/>
 					</graphicElement>
 				</line>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="312" y="3" width="64" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="311" y="3" width="64" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Cargos-debit_sum} == null ? 0.0 : $F{Cargos-debit_sum} )*$F{Signo_en_Reporte-report_sign}]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Cargos-debit_sum} == null ? 0.0 : $F{Cargos-debit_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="376" y="3" width="65" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="375" y="3" width="65" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Abonos-credit_sum} == null ? 0.0 : $F{Abonos-credit_sum} )*$F{Signo_en_Reporte-report_sign}]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Abonos-credit_sum} == null ? 0.0 : $F{Abonos-credit_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="441" y="3" width="66" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="440" y="3" width="66" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} == null ? 0.0 : $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} ) * $F{Signo_en_Reporte-report_sign}]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} == null ? 0.0 : $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="249" y="3" width="62" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="246" y="3" width="64" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Inicial-initial_balance_sum} == null ? 0.0 : $F{Saldo_Inicial-initial_balance_sum} ) * $F{Signo_en_Reporte-report_sign}]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Saldo_Inicial-initial_balance_sum} == null ? 0.0 : $F{Saldo_Inicial-initial_balance_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="507" y="3" width="65" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="506" y="3" width="65" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Final-ending_balance_sum} == null ? 0.0 : $F{Saldo_Final-ending_balance_sum} )*$F{Signo_en_Reporte-report_sign}]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Saldo_Final-ending_balance_sum} == null ? 0.0 : $F{Saldo_Final-ending_balance_sum} )]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupFooter>
@@ -273,72 +276,17 @@
 	<group name="Seccion de Cuentas">
 		<groupExpression><![CDATA[$F{Seccion-report_section}]]></groupExpression>
 		<groupHeader>
-			<band height="44">
+			<band height="25">
 				<textField>
-					<reportElement x="0" y="30" width="292" height="13"/>
+					<reportElement x="0" y="10" width="292" height="13"/>
 					<textElement>
 						<font isBold="true" isItalic="true"/>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[$F{Seccion-report_section}]]></textFieldExpression>
 				</textField>
 				<line>
-					<reportElement x="2" y="42" width="245" height="1"/>
+					<reportElement x="0" y="22" width="245" height="1"/>
 				</line>
-				<staticText>
-					<reportElement x="517" y="0" width="45" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8"/>
-					</textElement>
-					<text><![CDATA[Saldo Acumulado]]></text>
-				</staticText>
-				<staticText>
-					<reportElement x="247" y="0" width="65" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8"/>
-					</textElement>
-					<text><![CDATA[Acumulado Periodo Anterior]]></text>
-				</staticText>
-				<staticText>
-					<reportElement x="312" y="0" width="65" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8"/>
-					</textElement>
-					<text><![CDATA[Cargos]]></text>
-				</staticText>
-				<staticText>
-					<reportElement x="377" y="0" width="65" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8"/>
-					</textElement>
-					<text><![CDATA[Abonos]]></text>
-				</staticText>
-				<staticText>
-					<reportElement x="458" y="0" width="44" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8"/>
-					</textElement>
-					<text><![CDATA[Saldo del Periodo]]></text>
-				</staticText>
-				<staticText>
-					<reportElement x="71" y="0" width="176" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8"/>
-					</textElement>
-					<text><![CDATA[Descripcion Cuenta]]></text>
-				</staticText>
-				<line>
-					<reportElement x="0" y="0" width="572" height="1"/>
-				</line>
-				<line>
-					<reportElement x="0" y="19" width="572" height="1"/>
-				</line>
-				<staticText>
-					<reportElement x="0" y="0" width="71" height="20"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8" isBold="true"/>
-					</textElement>
-					<text><![CDATA[Cuenta Contable]]></text>
-				</staticText>
 			</band>
 		</groupHeader>
 		<groupFooter>
@@ -356,41 +304,40 @@
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[$F{Seccion-report_section} + ' SubTotal:']]></textFieldExpression>
 				</textField>
-				<elementGroup/>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="248" y="4" width="64" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="247" y="3" width="64" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Inicial-initial_balance_sum} == null ? 0.0 : $F{Saldo_Inicial-initial_balance_sum} )]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Saldo_Inicial-initial_balance_sum} == null ? 0.0 : $F{Saldo_Inicial-initial_balance_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="508" y="4" width="65" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="376" y="3" width="65" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Final-ending_balance_sum} == null ? 0.0 : $F{Saldo_Final-ending_balance_sum} )]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Abonos-credit_sum} == null ? 0.0 : $F{Abonos-credit_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="313" y="4" width="64" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="507" y="3" width="65" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Cargos-debit_sum} == null ? 0.0 : $F{Cargos-debit_sum} )]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Saldo_Final-ending_balance_sum} == null ? 0.0 : $F{Saldo_Final-ending_balance_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="442" y="4" width="66" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="312" y="3" width="64" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} == null ? 0.0 : $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} )]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Cargos-debit_sum} == null ? 0.0 : $F{Cargos-debit_sum} )]]></textFieldExpression>
 				</textField>
-				<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-					<reportElement x="377" y="4" width="65" height="13"/>
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement x="441" y="3" width="66" height="13"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Abonos-credit_sum} == null ? 0.0 : $F{Abonos-credit_sum} )]]></textFieldExpression>
+					<textFieldExpression class="java.lang.Float"><![CDATA[( $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} == null ? 0.0 : $F{Saldo_del_Periodo-debit_credit_ending_balance_sum} )]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupFooter>
@@ -398,112 +345,112 @@
 	<group name="Auxiliar">
 		<groupExpression><![CDATA[$F{Report_ID}]]></groupExpression>
 		<groupHeader>
-			<band height="33">
+			<band height="31">
 				<textField>
-					<reportElement x="0" y="1" width="71" height="12"/>
+					<reportElement x="0" y="0" width="71" height="12"/>
 					<textElement>
 						<font size="8"/>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[$F{Cuenta-account_code}]]></textFieldExpression>
 				</textField>
 				<textField>
-					<reportElement x="71" y="1" width="176" height="12"/>
+					<reportElement x="71" y="0" width="176" height="12"/>
 					<textElement>
 						<font size="8"/>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[$F{Descripcion-account_name}]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00;(#,##0.00)">
-					<reportElement x="247" y="1" width="65" height="12"/>
+					<reportElement x="247" y="0" width="65" height="12"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
 					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Inicial-initial_balance} == null ? 0.0 : $F{Saldo_Inicial-initial_balance} )]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00;(#,##0.00)">
-					<reportElement x="312" y="1" width="65" height="12"/>
+					<reportElement x="312" y="0" width="65" height="12"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
 					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Cargos-debit} == null ? 0.0 : $F{Cargos-debit} )]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00;(#,##0.00)">
-					<reportElement x="377" y="1" width="65" height="12"/>
+					<reportElement x="377" y="0" width="65" height="12"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
 					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Abonos-credit} == null ? 0.0 : $F{Abonos-credit} )]]></textFieldExpression>
 				</textField>
 				<textField pattern="#,##0.00;(#,##0.00)">
-					<reportElement x="442" y="1" width="65" height="12"/>
+					<reportElement x="442" y="0" width="65" height="12"/>
 					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
 					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Periodo-debit_credit_ending_balance} == null ? 0.0 : $F{Saldo_Periodo-debit_credit_ending_balance} )]]></textFieldExpression>
 				</textField>
-				<staticText>
-					<reportElement x="507" y="21" width="65" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
-					<textElement textAlignment="Center">
+				<textField pattern="#,##0.00;(#,##0.00)">
+					<reportElement x="507" y="0" width="65" height="12"/>
+					<textElement textAlignment="Right">
 						<font size="8"/>
 					</textElement>
-					<text><![CDATA[Saldo Final]]></text>
-				</staticText>
+					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Acumulado-ending_balance} == null ? 0.0 : $F{Saldo_Acumulado-ending_balance} )]]></textFieldExpression>
+				</textField>
 				<staticText>
-					<reportElement x="0" y="21" width="99" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="0" y="20" width="101" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Diario Contable]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="99" y="21" width="50" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="101" y="20" width="48" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Fecha]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="149" y="21" width="85" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="149" y="20" width="85" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Empresa]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="234" y="21" width="77" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="234" y="20" width="77" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Referencia]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="312" y="21" width="65" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="312" y="20" width="65" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Saldo Inicial]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="377" y="21" width="65" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="377" y="20" width="65" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Cargos]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="442" y="21" width="65" height="10" isPrintInFirstWholeBand="true" forecolor="#666666"/>
+					<reportElement x="442" y="20" width="65" height="10" forecolor="#666666"/>
 					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
 					<text><![CDATA[Abonos]]></text>
 				</staticText>
-				<textField pattern="#,##0.00;(#,##0.00)">
-					<reportElement x="507" y="1" width="65" height="12"/>
-					<textElement textAlignment="Right">
+				<staticText>
+					<reportElement x="507" y="20" width="65" height="10" forecolor="#666666"/>
+					<textElement textAlignment="Center">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.Number"><![CDATA[( $F{Saldo_Acumulado-ending_balance} == null ? 0.0 : $F{Saldo_Acumulado-ending_balance} )]]></textFieldExpression>
-				</textField>
+					<text><![CDATA[Saldo Final]]></text>
+				</staticText>
 			</band>
 		</groupHeader>
 		<groupFooter>
@@ -529,7 +476,59 @@
 		<band height="2" splitType="Stretch"/>
 	</pageHeader>
 	<columnHeader>
-		<band height="76" splitType="Stretch">
+		<band height="78" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="60" width="60" height="12"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Cuenta Contable]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="60" y="60" width="162" height="12"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Descripcion Cuenta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="251" y="55" width="65" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Acumulado Periodo Anterior]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="316" y="60" width="65" height="12"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Cargos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="381" y="60" width="65" height="12"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Abonos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="457" y="55" width="45" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Saldo del Periodo]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="522" y="55" width="45" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Saldo Acumulado]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="77" width="572" height="1"/>
+			</line>
 			<textField pattern="dd/MM/yyyy">
 				<reportElement x="502" y="23" width="70" height="10"/>
 				<textElement textAlignment="Right">
@@ -577,84 +576,15 @@
 				<textElement/>
 				<textFieldExpression class="java.lang.String"><![CDATA["Periodo: " + $F{Nombre_del_periodo-name}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement x="0" y="65" width="101" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Diario Contable]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="507" y="65" width="65" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Saldo Final]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="377" y="65" width="65" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Cargos]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="442" y="65" width="65" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Abonos]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="234" y="65" width="77" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Referencia]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="149" y="65" width="85" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Empresa]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="101" y="65" width="48" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Fecha]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="312" y="65" width="65" height="10" forecolor="#666666">
-					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} != 1]]></printWhenExpression>
-				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="8"/>
-				</textElement>
-				<text><![CDATA[Saldo Inicial]]></text>
-			</staticText>
+			<line>
+				<reportElement x="0" y="53" width="572" height="1"/>
+			</line>
 		</band>
 	</columnHeader>
 	<detail>
 		<band height="23">
 			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-				<reportElement x="312" y="3" width="64" height="10" forecolor="#666666"/>
+				<reportElement x="311" y="3" width="65" height="10" forecolor="#666666"/>
 				<textElement textAlignment="Right">
 					<font size="8" isItalic="true"/>
 				</textElement>
@@ -690,7 +620,7 @@
 				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Saldo_Final_1}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="150" y="3" width="83" height="20" forecolor="#666666"/>
+				<reportElement x="150" y="3" width="84" height="20" forecolor="#666666"/>
 				<textElement textAlignment="Center">
 					<font size="8" isItalic="true"/>
 				</textElement>
@@ -704,14 +634,14 @@
 				<textFieldExpression class="java.util.Date"><![CDATA[$F{Fecha_Poliza_1}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="0" y="3" width="99" height="20" forecolor="#666666"/>
+				<reportElement x="0" y="3" width="100" height="20" forecolor="#666666"/>
 				<textElement textAlignment="Center">
 					<font size="8" isItalic="true"/>
 				</textElement>
 				<textFieldExpression class="java.lang.String"><![CDATA[$F{Diario_Contable_1}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
-				<reportElement x="376" y="3" width="66" height="10" forecolor="#666666"/>
+				<reportElement x="376" y="3" width="65" height="10" forecolor="#666666"/>
 				<textElement textAlignment="Right">
 					<font size="8" isItalic="true"/>
 				</textElement>
@@ -747,40 +677,40 @@
 					<pen lineStyle="Solid"/>
 				</graphicElement>
 			</line>
-			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="246" y="5" width="65" height="12"/>
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Saldo_Inicial_Global-initial_balance_global}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Float"><![CDATA[$F{Saldo_Inicial_Global-initial_balance_global}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="311" y="5" width="65" height="12"/>
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Cargos_Global-debit_global}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Float"><![CDATA[$F{Cargos_Global-debit_global}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="376" y="5" width="65" height="12"/>
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Abonos_Global-credit_global}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Float"><![CDATA[$F{Abonos_Global-credit_global}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="441" y="5" width="65" height="12"/>
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Saldo_del_Periodo_Global-debit_credit_ending_balance_global}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Float"><![CDATA[$F{Saldo_del_Periodo_Global-debit_credit_ending_balance_global}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.00;(#,##0.00)" isBlankWhenNull="true">
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
 				<reportElement x="505" y="5" width="67" height="12"/>
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression class="java.lang.Number"><![CDATA[$F{Saldo_Final_Global-ending_balance_global}]]></textFieldExpression>
+				<textFieldExpression class="java.lang.Float"><![CDATA[$F{Saldo_Final_Global-ending_balance_global}]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>

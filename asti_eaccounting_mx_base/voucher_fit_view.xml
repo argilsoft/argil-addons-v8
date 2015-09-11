@@ -1,0 +1,43 @@
+<openerp>
+    
+    <data>
+        
+        <record id="voucher_fit_form" model="ir.ui.view">
+            <field name="name">voucher.fit.form</field>
+            <field name="model">account.voucher</field>
+            <field name="inherit_id" ref="account_voucher.view_vendor_receipt_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/notebook" position="before">
+                    <group colspan="2">
+                    	<field name="check_number" attrs="{'required' : [('cmpl_type', '=', 'check')], 'readonly' : [('cmpl_type', '!=', 'check')]}"/>
+                    	<field name="cmpl_type" invisible="1"/>
+                    </group><group colspan="2"/>
+                </xpath>
+                <field name="partner_id" position="after">
+                    <field name="partner_acc_id" domain="[('partner_id', '=', partner_id)]" 
+                        attrs="{'readonly' : [('cmpl_type', 'not in', ['transfer', 'check'])], 'required' : [('cmpl_type', 'in', ['transfer', 'check'])]}"/>
+                </field>
+            </field>
+        </record>
+        
+        <record id="supplier_voucher_fit_form" model="ir.ui.view">
+            <field name="name">supplier.voucher.fit.form</field>
+            <field name="model">account.voucher</field>
+            <field name="inherit_id" ref="account_voucher.view_vendor_payment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/notebook" position="before">
+                    <group colspan="2">
+                    	<field name="check_number" attrs="{'required' : [('cmpl_type', '=', 'check')], 'readonly' : [('cmpl_type', '!=', 'check')]}"/>
+                    	<field name="cmpl_type" invisible="1"/>
+                    </group><group colspan="2"/>
+                </xpath>
+                <field name="partner_id" position="after">
+                    <field name="partner_acc_id" domain="[('partner_id', '=', partner_id)]" 
+                        attrs="{'readonly' : [('cmpl_type', 'not in', ['transfer', 'check'])], 'required' : [('cmpl_type', 'in', ['transfer', 'check'])]}"/>
+                </field>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

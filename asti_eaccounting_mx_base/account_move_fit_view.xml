@@ -1,0 +1,157 @@
+<openerp>
+    
+    <data>
+        
+        <record id="move_complements_form" model="ir.ui.view">
+            <field name="name">move.complements.form</field>
+            <field name="model">account.move</field>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <form string="Contabilidad electrónica - complementos" version="7.0">
+                   	<h1>
+                   	    <field name="name" readonly="True" attrs="{'invisible':[('name','=','/')]}"/>
+                   	</h1>
+                    <field name="complement_line_ids" nolabel="1" colspan="4">
+                        <tree>
+                            <field name="type_id" string="Tipo"/>
+                            <field name="rfc" />
+                            <field name="rfc2" />
+                            <field name="foreign_taxid" />
+                            <field name="compl_date"/>
+                            <field name="amount"/>
+                            <field name="uuid" />
+                            <field name="cbb_series" />
+                            <field name="cbb_number" />
+                            <field name="foreign_invoice" />
+                        </tree>
+                        <form string="Contabilidad electrónica - complementos" version="7.0">
+			                <field name="type_key" invisible="1"/><field name="origin_bank_key" invisible="1"/>
+			                <field name="destiny_bank_key" invisible="1"/>
+			                <table>
+			                    <tr>
+			                        <td> <label for="type_id" string="Tipo"/> </td>
+			                        <td colspan="2"> <field name="type_id" domain="[('allowed_in_helper', '=', True)]" on_change="onchange_type(type_id)"/> </td> 
+			                        <td colspan="4">
+			                            <label string="Adjuntar xml CFDI" attrs="{'invisible' : [('type_key','!=','cfdi')]}" style="padding-left:10px;color:#1c7bad"/>
+			                            <label string="Adjuntar xml CFD" attrs="{'invisible' : [('type_key','!=','other')]}" style="padding-left:10px;color:#1c7bad"/>
+			                            <field name="file_data" attrs="{'invisible' : [('type_key','not in',['cfdi','other'])]}" style="padding-left:10px"
+			                                on_change="onchange_attachment(file_data)"/>
+			                        </td>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="uuid" string="UuId" /> </td>
+			                        <td colspan="2"> <field name="uuid" on_change="onchange_uuid(uuid)"
+			                            	attrs="{'readonly' : [('type_key', '!=', 'cfdi')], 'required' : [('type_key', '=', 'cfdi')]}"/> </td>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="cbb_series" string="Serie"/> </td>
+			                        <td> <field name="cbb_series" on_change="onchange_series(cbb_series)" 
+			                            attrs="{'readonly' : [('type_key', 'not in', ['cfdi','other'])]}"/> </td>
+			                        <td> <label for="cbb_number" string="Folio"/> </td>
+			                        <td> <field name="cbb_number" 
+			                            attrs="{'readonly' : [('type_key', 'not in', ['cfdi','other'])], 'required' : [('type_key', '=', 'other')]}"/> </td>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="rfc" string="R.F.C. origen"/> </td>
+			                        <td> <field name="rfc" on_change="onchange_rfc(rfc)"
+				                    	    attrs="{'readonly' : [('type_key', 'in', ['foreign', 'payment'])], 'required' : [('type_key', 'in', ['cfdi','check','transfer','other'])]}"/> </td>
+			                        <td> <label for="rfc2" string="R.F.C. destino"/> </td>
+			                        <td> <field name="rfc2" on_change="onchange_rfc(rfc2)"
+				                    	    attrs="{'readonly' : [('type_key', '=', 'foreign')], 'required' : [('type_key', 'in', ['cfdi','check','transfer','payment','other'])]}"/> <td/> </td>
+			                        <td> <label string="sergsrgfsegfserserihfoisehbgoseht" style="padding-left:10px;color:#ffffff"/></td>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="foreign_taxid" string="Tax Id extranjero"/> </td>
+			                        <td colspan="2"> <field name="foreign_taxid" attrs="{'readonly' : [('type_key', '!=', 'foreign')]}"/> </td>
+			                        <td> <label for="foreign_invoice" string="No fact"/> </td>
+			                        <td> <field name="foreign_invoice"
+			                            attrs="{'readonly' : [('type_key', '!=', 'foreign')], 'required' : [('type_key', '=', 'foreign')]}"/> </td>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="pay_method_id" string="Método de pago"/> </td>
+			                        <td colspan="2"> <field name="pay_method_id" /> </td>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="amount" string="Monto total"/> </td>
+			                        <td> <field name="amount" attrs="{'required' : [('type_key', 'in', ['cfdi','check','transfer','payment','other','foreign'])]}"/> </td>
+			                        <td/> <td/>
+			                    </tr>
+			                    <tr>
+			                        <td> <label for="compl_currency_id" /> </td>
+			                        <td> <field name="compl_currency_id" /> </td>
+			                        <td> <label for="exchange_rate" /> </td>
+			                        <td> <field name="exchange_rate" /> </td>
+			                    </tr>
+		                	</table>
+		        		</form>
+                    </field>
+                	<button type="object" name="save_complements" string="Guardar" class="oe_highlight"/>
+                	o
+                	<button special="cancel" string="Cancelar" class="oe_link"/>
+                </form>
+            </field>
+        </record>
+        
+        <!-- server action -->
+        
+        <record id="account_moves_xml_action" model="ir.actions.server">
+            <field name="name">XML del SAT - Pólizas</field>
+            <field name="type">ir.actions.server</field>
+            <field name="condition">True</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="sequence" eval="5"/>
+            <field name="code">action = object.launch_period_validator(context=context)</field>
+        </record>
+        
+        <record id="account_moves_xml_sidelink" model="ir.values">
+            <field name="name">account.moves.xml.sidelink</field>
+            <field name="model">account.move</field>
+            <field name="object" eval="1"/>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.server,%d'% account_moves_xml_action"/>
+        </record>
+        
+        <record id="helpers_xml_action" model="ir.actions.server">
+            <field name="name">XML del SAT - Auxiliar de folios</field>
+            <field name="type">ir.actions.server</field>
+            <field name="condition">True</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="sequence" eval="5"/>
+            <field name="code">
+context['target'] = 'helpers'
+action = object.launch_period_validator(context=context)
+            </field>
+        </record>
+        
+        <record id="helpers_xml_sidelink" model="ir.values">
+            <field name="name">helpers.xml.sidelink</field>
+            <field name="model">account.move</field>
+            <field name="object" eval="1"/>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.server,%d'% helpers_xml_action"/>
+        </record>
+        
+        <!-- file processes from this form -->
+        
+        <record id="vouchers_holder_form" model="ir.ui.view">
+            <field name="name">vouchers_holder_form</field>
+            <field name="model">vouchers.xml.creator</field>
+            <field name="arch" type="xml">
+                <form string="" version="7.0">
+                    <group colspan="4" col="6">
+                        <field name="vouchers_reqtype"/>
+                        <field name="vouchers_ordnum" attrs="{'invisible' : [('vouchers_reqtype', 'not in', ['AF', 'FC'])], 'required' : [('vouchers_reqtype', 'in', ['AF', 'FC'])]}"/>
+                        <field name="vouchers_procnum" attrs="{'invisible' : [('vouchers_reqtype', 'not in', ['CO', 'DE'])], 'required' : [('vouchers_reqtype', 'in', ['CO', 'DE'])]}"/>
+                    </group>
+                    <footer>
+                        <button type="object" name="start_processing" string="Procesar archivo" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

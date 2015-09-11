@@ -1,0 +1,9 @@
+prefix,suffix,name,number_next,number_increment,padding
+D-,,Diario,1,1,4
+V-,,Ventas,1,1,4
+NC-,,Notas de Crédito,1,1,4
+C-,,Compras,1,1,4
+NCC-,,Notas de Crédito (Compras),1,1,4
+CQ-,,Cheque,1,1,4
+TR-,,Transferencias,1,1,4
+NCA-,,Notas de Cargo,1,1,4

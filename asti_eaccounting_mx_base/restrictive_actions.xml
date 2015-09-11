@@ -1,0 +1,38 @@
+<openerp>
+    
+    <data>
+        
+        <!-- complement types actions -->
+        
+        <record id="complement_types_form" model="ir.ui.view">
+            <field name="name">complement.types.form</field>
+            <field name="model">eaccount.complement.types</field>
+            <field name="arch" type="xml">
+                <form string="" version="7.0">
+                    <separator string="Tipos de complementos" colspan="4"/>
+                    <h3>Los tipos de complementos son administrados por el sistema, la manipulación manual no es necesaria.</h3>
+                </form>
+            </field>
+        </record>
+        
+        <record id="complement_types_action" model="ir.actions.act_window">
+            <field name="name">Tipos de complemento</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">eaccount.complement.types</field>
+            <field name="view_mode">form</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="complement_types_form"/>
+        </record>
+        
+        <record id="complement_types_action_key" model="ir.values">
+            <field name="key2">client_action_multi</field>
+            <field name="model_id" ref="model_eaccount_complement_types"/>
+            <field name="name">Abrir tipo complemento</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('complement_types_action'))"/>
+            <field name="key">action</field>
+            <field name="model">eaccount.complement.types</field>
+        </record>
+        
+    </data>
+    
+</openerp>

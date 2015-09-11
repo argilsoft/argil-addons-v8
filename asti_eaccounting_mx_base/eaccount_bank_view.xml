@@ -1,0 +1,68 @@
+<openerp>
+    
+    <data>
+        
+        <record id="res_bank_search" model="ir.ui.view">
+            <field name="name">res.bank.search</field>
+            <field name="model">eaccount.bank</field>
+            <field name="arch" type="xml">
+                <search string="Bancos">
+                    <field name="bic" string="Clave"/>
+                    <field name="code" string="Nombre"/>
+                    <field name="name" string="Razón social"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="res_banktree_inherited" model="ir.ui.view">
+            <field name="name">res.banktree.inherited</field>
+            <field name="model">eaccount.bank</field>
+            <field name="arch" type="xml">
+	            <tree string="Bancos">
+	                <field name="bic" string="Clave"/>
+	                <field name="code" string="Nombre"/>
+	                <field name="name" string="Razón social"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="account_bank_form" model="ir.ui.view">
+            <field name="name">account.bank.form</field>
+            <field name="model">eaccount.bank</field>
+            <field name="arch" type="xml">
+                <form string="Bancos">
+                    <group colspan="4" col="6">
+                        <field name="bic" string="Clave"/>
+	                    <field name="code" colspan="4" string="Nombre"/>
+	                    <field name="name" colspan="6" string="Razón social"/>
+                	</group>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_eaccount_banks" model="ir.actions.act_window">
+            <field name="name">Bancos oficiales SAT</field>
+            <field name="res_model">eaccount.bank</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_type">form</field>
+        </record>
+        
+        
+        <!-- actual changes to bank's form -->
+        
+        <record id="account_bank_form_inherited" model="ir.ui.view">
+            <field name="name">account.bank.form.inherited</field>
+            <field name="model">res.bank</field>
+            <field name="inherit_id" ref="base.view_res_bank_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/group" position="after">
+                    <group colspan="4">
+                    	<field name="sat_bank_id" required="1"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+          
+    </data>
+    
+</openerp>

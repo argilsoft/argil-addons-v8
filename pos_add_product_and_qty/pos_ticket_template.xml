@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="assets_backend" name="point_of_sale assets" inherit_id="point_of_sale.assets_backend">
+        <!--    <xpath expr="//script[contains(@src,'widget_base.js')]" position="replace">
+                <script type="text/javascript" src="/argil_cb_pos_ticket/static/src/js/widget_base_pt.js"></script>
+            </xpath>
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/argil_cb_pos_ticket/static/src/js/widgets_as.js"></script>
+            </xpath>
+        -->
+            <xpath expr="//script[contains(@src,'models.js')]" position="replace">
+                   <script type="text/javascript" src="/argil_cb_pos_ticket/static/src/js/models_cb.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>

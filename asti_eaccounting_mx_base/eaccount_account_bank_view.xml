@@ -1,0 +1,48 @@
+<openerp>
+    
+    <data>
+        
+        <record id="eaccount_search" model="ir.ui.view">
+            <field name="name">eaccount.form</field>
+            <field name="model">eaccount.bank.account</field>
+            <field name="arch" type="xml">
+                <search string="Cuentas bancarias">
+                    <field name="code"/>
+                    <field name="bank_id"/>
+                    <field name="currency_id"/>
+                    <field name="account_id"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="eaccount_tree" model="ir.ui.view">
+            <field name="name">eaccount.tree</field>
+            <field name="model">eaccount.bank.account</field>
+            <field name="arch" type="xml">
+                <tree string="Cuentas bancarias">
+                    <field name="code"/>
+                    <field name="bank_id"/>
+                    <field name="currency_id"/>
+                    <field name="account_id"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="eaccount_form" model="ir.ui.view">
+            <field name="name">eaccount.form</field>
+            <field name="model">eaccount.bank.account</field>
+            <field name="arch" type="xml">
+                <form string="Cuentas bancarias">
+					<group col="4" colspan="4">
+						<field name="code"/>
+						<field name="bank_id"/>
+						<field name="currency_id"/>
+						<field name="account_id"/>
+					</group>
+                </form>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

@@ -11,6 +11,7 @@
                     <field name="get_product_ean" 
                         on_change="onchange_product_ean(get_product_ean, pricelist_id, partner_id, date_order, fiscal_position, minimum_planned_date, order_line, context)" 
                         groups="argil_purchase_order_w_barcode.group_purchase_barcode"   
+						attrs="{'invisible':[('state','not in',('draft)), ('name','=',False)]}"
                            />
                 </group>
             </notebook>

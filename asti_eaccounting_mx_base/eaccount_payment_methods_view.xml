@@ -1,0 +1,49 @@
+<openerp>
+    
+    <data>
+        
+        <record id="eaccount_paymeths_seach" model="ir.ui.view">
+            <field name="name">eaccount.paymeths.seach</field>
+            <field name="model">eaccount.payment.methods</field>
+            <field name="arch" type="xml">
+                <search string="Métodos de pago SAT">
+                    <field name="code"/>
+                    <field name="name"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="eaccount_paymeths_tree" model="ir.ui.view">
+            <field name="name">eaccount.paymeths.tree</field>
+            <field name="model">eaccount.payment.methods</field>
+            <field name="arch" type="xml">
+                <tree string="Métodos de pago SAT">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="eaccount_paymeths_form" model="ir.ui.view">
+            <field name="name">eaccount.paymeths.form</field>
+            <field name="model">eaccount.payment.methods</field>
+            <field name="arch" type="xml">
+                <form string="Métodos de pago SAT">
+					<group col="4" colspan="4">
+						<field name="code"/>
+						<field name="name"/>
+					</group>
+                </form>
+            </field>
+        </record>
+        
+        <record id="eaccount_peymeths_action" model="ir.actions.act_window">
+            <field name="name">Métodos de pago SAT</field>
+            <field name="res_model">eaccount.payment.methods</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        
+    </data>
+    
+</openerp>

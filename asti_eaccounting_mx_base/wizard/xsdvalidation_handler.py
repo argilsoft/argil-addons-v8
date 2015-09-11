@@ -20,7 +20,17 @@
 #
 ##############################################################################
 
-import sale_stock
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
+from openerp.osv import fields, osv
+import base64
+
+class xsdvalidation_handler_wizard(osv.osv_memory):
+    _name = 'xsdvalidation.handler.wizard'
+    _columns = {'error_filename': fields.char('Error filename', size=20, required=True),
+     'error_file': fields.binary('Detalles del error'),
+     'sample_xmlname': fields.char('Sample XML Name', size=128, required=True),
+     'sample_xml': fields.binary('XML con validaci\xc3\xb3n fallida')}
+
+xsdvalidation_handler_wizard()
 

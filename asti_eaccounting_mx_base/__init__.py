@@ -20,7 +20,21 @@
 #
 ##############################################################################
 
-import sale_stock
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+import eaccount_sat_code
+import eaccount_journal_type
+import eaccount_bank
+import eaccount_account_bank
+import eaccount_payment_methods
+import account_fit
+import account_move_fit
+import account_moveline_fit
+import company_fit
+import journal_fit
+import eaccount_currency
+import hesa_filegenerate
+import invoice_fit
+import voucher_fit
+import wizard
+import report
 

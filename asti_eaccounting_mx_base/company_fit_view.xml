@@ -1,0 +1,70 @@
+<openerp>
+    
+    <data>
+        
+        <record id="company_form_fit" model="ir.ui.view">
+            <field name="name">company.form.fit</field>
+            <field name="model">res.company</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <field name="zip" position="replace"/>
+                <field name="city" position="replace"/>
+                <field name="state_id" position="replace"/>
+                <!-- customization now -->
+                <label for="street" position="before">
+                    <field name="regname"/>
+                    <field name="rfc"/>
+                </label>
+                <field name="street2" position="after">
+                    <field name="block" placeholder="Colonia" style="width: 64%%"/>
+                    <field name="zip" placeholder="ZIP" style="width: 34%%"/>
+                    <field name="city" placeholder="Municipio"/>
+                    <field name="state_id" placeholder="State"/>
+                </field>
+                <field name="phone" position="after">
+               		<field name="mobile_number"/>
+                </field>
+                <field name="phone" position="before"> 
+                    <field name="license_key" />
+                    <field name="auto_mode_enabled"/>
+                </field>
+                <xpath expr="/form/sheet/notebook/page[@string='Configuration']/group/group" position="after">
+                    <group colspan="2" col="4" string="Contabilidad electrónica - aplicar moneda en">
+                        <field name="apply_in_check"/>
+                        <field name="apply_in_cfdi"/>
+                        <field name="apply_in_trans"/>
+                        <field name="apply_in_other"/>
+                        <field name="apply_in_paymth"/>
+                        <field name="apply_in_forgn"/>
+                    </group>
+                    <group colspan="2" col="4" string="Plantillas para conceptos en pólizas">
+                        <field name="concept_template_ids" nolabel="1" colspan="4">
+                            <tree string="">
+                                <field name="move_type"/>
+                                <field name="concept"/>
+                            </tree>
+                            <form string="">
+                                <group colspan="4"> <field name="move_type"/> </group>
+                                <p colspan="4">Escriba el concepto que será asignado a las pólizas con el tipo especificado. Para redactar el concepto
+                                    se debe utilzar la sintaxis de Python para sustitución de variables: una cadena con cualquier número de símbolos de
+                                    formato, tres guiones bajos ( ___ ) y una tupla con los argumentos. Si la cadena no requiriera argumentos, se debe
+                                    indicar con los tres guiones bajos seguidos de una tupla vacía.
+                                    (_).<br/> 
+                                    Adicionalmente se tiene acceso a los objetos de la factura y del pago, así como a todos los campos accesibles desde
+                                    ellos a través de la &quot;notación de punto&quot;. Para acceder a dichos objetos utilice los marcadores <i>invoice
+                                    </i> y <i>voucher</i> respectivamente.</p>
+                                <p colspan="4">El siguiente es un ejemplo de concepto válido:<br/>
+                                    Póliza correspondiente a la factura de %%s, con fecha %%s y monto &#36;%%d.___(invoice.partner_id.name, invoice.date_invoice, invoice.amount_total)
+                                </p> 
+                                <field name="concept" colspan="4" nolabel="1"/>
+                            </form>
+                        </field>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

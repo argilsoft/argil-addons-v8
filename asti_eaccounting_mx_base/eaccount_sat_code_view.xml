@@ -1,0 +1,51 @@
+<openerp>
+    
+    <data>
+        
+        <record id="sat_accountcode_search" model="ir.ui.view">
+            <field name="name">sat.accountcode.search</field>
+            <field name="model">sat.account.code</field>
+            <field name="arch" type="xml">
+                <search string="Cuentas del SAT">
+                    <field name="key"/>
+                    <field name="name"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="sat_accountcode_tree" model="ir.ui.view">
+            <field name="name">sat.accountcode.tree</field>
+            <field name="model">sat.account.code</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Cuentas del SAT">
+                    <field name="key"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="sat_accountcode_form" model="ir.ui.view">
+            <field name="name">sat.accountcode.form</field>
+            <field name="model">sat.account.code</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Cuentas del SAT">
+                    <group colspan="4" col="6">
+                        <field name="key"/>
+                        <field name="name" colspan="4"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+        
+        <record id="sat_accountcode_action" model="ir.actions.act_window">
+            <field name="name">Códigos agrupadores SAT</field>
+            <field name="res_model">sat.account.code</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_type">form</field>
+        </record>
+        
+    </data>
+    
+</openerp>

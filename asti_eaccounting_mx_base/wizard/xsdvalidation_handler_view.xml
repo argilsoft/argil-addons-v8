@@ -1,0 +1,22 @@
+<openerp>
+    
+    <data>
+        
+        <record id="xsdvalidation_handler_wizard_form" model="ir.ui.view">
+            <field name="name">xsdvalidation.handler.wizard.form</field>
+            <field name="model">xsdvalidation.handler.wizard</field>
+            <field name="arch" type="xml">
+                <form string="">
+                    <field name="error_filename" invisible="1"/>
+                    <field name="sample_xmlname" invisible="1"/>
+<!--                     <label for="error_file" string="Detalles del error"/> -->
+                    <field name="error_file" filename="error_filename" colspan="4"/>
+<!--                     <label for="sample_xml" string="XML con validación fallida"/> -->
+                    <field name="sample_xml" filename="sample_xmlname" colspan="4"/>
+                </form>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

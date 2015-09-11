@@ -1,0 +1,49 @@
+<openerp>
+    
+    <data>
+        
+        <record id="account_journaltype_search" model="ir.ui.view">
+            <field name="name">account.journaltype.search</field>
+            <field name="model">account.journal.types</field>
+            <field name="arch" type="xml">
+                <search string="Tipos de póliza">
+                    <field name="name"/>
+                    <field name="code"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="account_journaltype_tree" model="ir.ui.view">
+            <field name="name">account.journaltype.tree</field>
+            <field name="model">account.journal.types</field>
+            <field name="arch" type="xml">
+                <tree string="Tipos de póliza">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="account_journaltype_form" model="ir.ui.view">
+            <field name="name">account.journaltype.form</field>
+            <field name="model">account.journal.types</field>
+            <field name="arch" type="xml">
+                <form string="Tipos de póliza">
+                    <group colspan="4" col="6">
+	                    <field name="name" colspan="4"/>
+	                    <field name="code"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+        
+        <record id="account_journaltype_action" model="ir.actions.act_window">
+            <field name="name">Tipos de póliza</field>
+            <field name="res_model">account.journal.types</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_type">form</field>
+        </record>
+        
+    </data>
+    
+</openerp>

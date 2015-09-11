@@ -1,0 +1,11 @@
+report_type,code,name
+asset,asset,Activo
+none,bien,Bien
+none,cash,Efectivo
+liability,equity,Pasivo
+expense,expense,Gastos
+income,income,Ingresos
+none,payable,Por Pagar
+none,receivable,Por Cobrar
+none,tax,Impuestos
+none,view,Vista

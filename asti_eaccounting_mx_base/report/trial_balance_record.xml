@@ -1,0 +1,10 @@
+<openerp>
+    
+    <data>
+        
+        <report auto="False" id="ea_trial_balance_rml" model="account.monthly_balance" name="rml.ceBalanzaComprobacion" header="False"
+            rml="asti_eaccounting_mx_base_70/report/trial_balance.rml" string="Balanza de comprobación RML (CE)" multi="True"/>
+        
+    </data>
+    
+</openerp>

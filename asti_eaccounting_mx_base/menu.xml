@@ -1,0 +1,30 @@
+<openerp>
+    
+    <data>
+        
+<!--    main eaccount menu -->
+        <menuitem id="eaccounting_parent" parent="account.menu_finance_configuration" name="Contabilidad Electrónica" sequence="1"
+            groups="eaccounting_user_group,eaccounting_admin_group"/>
+        
+<!--    config menu -->
+
+		<menuitem id="overall_config_menu" action="overall_cfg_action" parent="eaccounting_parent" sequence="1"/>
+        
+        <menuitem id="account_journaltype_menu" action="account_journaltype_action" parent="eaccounting_parent" sequence="2"/>
+        
+        <menuitem id="sat_accountcode_menu" action="sat_accountcode_action" parent="eaccounting_parent" sequence="3"/>
+        
+        <menuitem id="extra_bank_menu" action="action_eaccount_banks" parent="eaccounting_parent" sequence="4"/>
+        
+        <menuitem id="extra_currencies_menu" action="eaccount_currency_action" parent="eaccounting_parent" sequence="5"/>
+        
+        <menuitem id="payment_methods_menu" action="eaccount_peymeths_action" parent="eaccounting_parent" sequence="6"/>
+        
+<!--    processes menu        -->
+        
+        <menuitem id="files_generator_menu" action="files_generator_action" parent="account.menu_finance_periodical_processing" sequence="1" 
+            groups="eaccounting_user_group,eaccounting_admin_group"/>
+        
+    </data>
+    
+</openerp>

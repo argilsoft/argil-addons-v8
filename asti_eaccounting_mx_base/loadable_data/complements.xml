@@ -1,0 +1,43 @@
+<openerp>
+    
+    <data>
+        
+        <record id="cfdi_cmpl" model="eaccount.complement.types">
+            <field name="key">cfdi</field>
+            <field name="name">Comp. nacional</field>
+            <field name="allowed_in_helper" eval="1"/>
+        </record>
+        
+        <record id="check_cmpl" model="eaccount.complement.types">
+            <field name="key">check</field>
+            <field name="name">Cheque</field>
+            <field name="allowed_in_helper" eval="0"/>
+        </record>
+        
+        <record id="trans_cmpl" model="eaccount.complement.types">
+            <field name="key">transfer</field>
+            <field name="name">Transferencia</field>
+            <field name="allowed_in_helper" eval="0"/>
+        </record>
+        
+        <record id="payment_cmpl" model="eaccount.complement.types">
+            <field name="key">payment</field>
+            <field name="name">Método de pago</field>
+            <field name="allowed_in_helper" eval="0"/>
+        </record>
+        
+        <record id="other_cmpl" model="eaccount.complement.types">
+            <field name="key">other</field>
+            <field name="name">Comp. nacional otro</field>
+            <field name="allowed_in_helper" eval="1"/>
+        </record>
+        
+        <record id="frgn_cmpl" model="eaccount.complement.types">
+            <field name="key">foreign</field>
+            <field name="name">Comp. extranjero</field>
+            <field name="allowed_in_helper" eval="1"/>
+        </record>
+        
+    </data>
+    
+</openerp>

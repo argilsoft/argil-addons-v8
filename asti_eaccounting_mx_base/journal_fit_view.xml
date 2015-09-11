@@ -1,0 +1,40 @@
+<openerp>
+    
+    <data>
+        
+        <record id="account_journaltree_fit" model="ir.ui.view">
+            <field name="name">account.journal.fit</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="journal_type"/>
+                </field>
+            </field>
+        </record>
+        
+        <record id="account_journalform_fit" model="ir.ui.view">
+            <field name="name">account.journal.fit</field>
+            <field name="model">account.journal</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <field name="code" position="after">
+                    <field name="journal_type" widget="selection"/>
+                    <field name="cmpl_type"/>
+                    <field name="other_payment" attrs="{'invisible' : [('cmpl_type', '!=', 'payment')], 'required' : [('cmpl_type', '=', 'payment')]}"/>
+                </field>
+                <field name="default_debit_account_id" position="after">
+                	<field name="debit_cmpl_acc_id" domain="[('account_id', '=', default_debit_account_id)]" 
+                	    attrs="{'required' : [('cmpl_type', 'in', ['check', 'transfer'])]}"/>
+                </field>
+                <field name="default_credit_account_id" position="after">
+                    <field name="credit_cmpl_acc_id" domain="[('account_id', '=', default_credit_account_id)]" 
+                        attrs="{'required' : [('cmpl_type', 'in', ['check', 'transfer'])]}"/>
+                </field>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

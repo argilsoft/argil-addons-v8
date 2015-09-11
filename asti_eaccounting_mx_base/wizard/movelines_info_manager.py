@@ -20,7 +20,23 @@
 #
 ##############################################################################
 
-import sale_stock
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
+from openerp.osv import fields, osv
+
+class moveline_info_manager(osv.osv_memory):
+    _name = 'moveline.info.manager'
+    _columns = {'line_id': fields.many2one('account.move.line', 'Line id', required=True),
+     'line_name': fields.related('line_id', 'name', type='char', string='Nombre', readonly=True),
+     'line_account': fields.related('line_id', 'account_id', type='many2one', relation='account.account', string='Cuenta', readonly=True),
+     'debit': fields.related('line_id', 'debit', type='float', string='Debe', readonly=True),
+     'credit': fields.related('line_id', 'credit', type='float', string='Haber', readonly=True),
+     'complement_ids': fields.related('line_id', 'complement_line_ids', type='one2many', relation='eaccount.complements', string='Complementos')}
+
+    def save_changes(self, cr, uid, ids, context):
+        return {'type': 'ir.actions.act_window_close'}
+
+
+
+moveline_info_manager()
 

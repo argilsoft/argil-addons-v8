@@ -1,0 +1,45 @@
+<openerp>
+
+	<data>
+	    
+	    <!-- server action -->
+        
+        <record id="hesa_generation_xml_action" model="ir.actions.server">
+            <field name="name">Generar XML del SAT</field>
+            <field name="type">ir.actions.server</field>
+            <field name="condition">True</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="argil_mx_accounting_reports_consol.model_account_monthly_balance"/>
+            <field name="sequence" eval="5"/>
+            <field name="code">action = object.launch_xml_generator(context=context)</field>
+        </record>
+        
+        <record id="hesa_generation_xml_sidelink" model="ir.values">
+            <field name="name">hesa.generation.xml.sidelink</field>
+            <field name="model">account.monthly_balance</field>
+            <field name="object" eval="1"/>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.server,%d'% hesa_generation_xml_action"/>
+        </record>
+        
+        <!-- main file form -->
+        
+        <record id="hesa_generation_form" model="ir.ui.view">
+            <field name="name">hesa.generation.form</field>
+            <field name="model">hesa.filegenerate</field>
+            <field name="arch" type="xml">
+                <form string="" version="7.0">
+                    <group>
+	                    <field name="trial_delivery"/>
+	                    <field name="trial_lastchange_date" attrs="{'invisible' : [('trial_delivery', '=', 'N')], 'required' : [('trial_delivery', '=', 'C')]}"/>
+                    </group>
+                    <footer>
+                        <button type="object" name="generate_file" string="Procesar" icon="gtk-jump-to" colspan="2" class="oe_highlight"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+	    
+	</data>
+
+</openerp>

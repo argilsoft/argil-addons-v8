@@ -1,0 +1,203 @@
+
+<openerp>
+    
+    <data>
+        
+        <record id="moveline_currency_fit" model="ir.ui.view">
+            <field name="name">moveline.currency.fit</field>
+            <field name="model">account.move</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <field name="state" position="before">
+                    <button type="object" name="edit_complements" string="Auxiliar de folios" class="oe_highlight"/>
+                </field>
+                <tree position="replace">
+                    <tree colors="blue:state == 'draft';black:state == 'posted'" string="Journal Items">
+                        <button type="object" name="edit_eaccount_info" icon="terp-folder-blue" class="oe_highlight" help="Probando ayuda"/>
+                        <field name="invoice"/>
+                        <field name="name"/>
+                        <field name="partner_id" on_change="onchange_partner_id(False, partner_id, account_id, debit, credit, parent.date, parent.journal_id, context)"/>
+                        <field name="account_id" domain="[('journal_id','=',parent.journal_id),('company_id', '=', parent.company_id)]"/>
+                        <field name="date_maturity"/>
+                        <field name="debit" sum="Total Debit"/>
+                        <field name="credit" sum="Total Credit"/>
+                        <field name="analytic_account_id" groups="analytic.group_analytic_accounting"/>
+                        <field name="amount_currency"/>
+                        <field name="currency_id" groups="base.group_multi_currency"/>
+                        <field name="tax_code_id"/>
+                        <field name="tax_amount"/>
+                        <field name="state"/>
+                        <field name="reconcile_id"/>
+                        <field name="reconcile_partial_id"/>
+                    </tree>
+                </tree>
+                <notebook position="before">
+                    <field name="item_concept" placeholder="Concepto para la póliza..."/>
+                </notebook>
+				<xpath expr="//field[@name='line_id']/form/notebook/page[@string='Information']" position="after">
+                    <page string="Contabilidad electrónica - complementos">
+                        <field name="complement_line_ids" mode="tree" nolabel="1" colspan="4" 
+                            context="{'default_move_line_id' : context['active_ids'], 'default_amount' : credit or debit, 'default_compl_date' : parent.date}">
+                            <tree>
+                                <field name="type_id" string="Tipo"/>
+                                <field name="rfc" />
+                                <field name="rfc2" />
+                                <field name="foreign_taxid" />
+                                <field name="compl_date"/>
+                                <field name="payee_id" />
+                                <field name="payee_acc_id" />
+                                <field name="amount"/>
+                                <field name="uuid" />
+                                <field name="cbb_series" />
+                                <field name="cbb_number" />
+                                <field name="foreign_invoice" />
+                            </tree>
+                            <form string="Contabilidad electrónica - complementos" version="7.0">
+				                <field name="type_key" invisible="1"/><field name="origin_bank_key" invisible="1"/>
+				                <field name="destiny_bank_key" invisible="1"/>
+				                <table>
+				                    <tr>
+				                        <td> <label for="type_id" string="Tipo"/> </td>
+				                        <td> <field name="type_id" on_change="onchange_type(type_id)"/> </td> 
+				                        <td colspan="4">
+				                            <label string="Adjuntar xml CFDI" attrs="{'invisible' : [('type_key','!=','cfdi')]}" style="padding-left:10px;color:#1c7bad"/>
+				                            <label string="Adjuntar xml CFD" attrs="{'invisible' : [('type_key','!=','other')]}" style="padding-left:10px;color:#1c7bad"/>
+				                            <field name="file_data" attrs="{'invisible' : [('type_key','not in',['cfdi','other'])]}" style="padding-left:10px"
+				                                on_change="onchange_attachment(file_data)"/>
+				                        </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="uuid" string="UuId" /> </td>
+				                        <td colspan="2"> <field name="uuid" on_change="onchange_uuid(uuid)"
+				                            	attrs="{'readonly' : [('type_key', '!=', 'cfdi')], 'required' : [('type_key', '=', 'cfdi')]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="cbb_series" string="Serie"/> </td>
+				                        <td> <field name="cbb_series" on_change="onchange_series(cbb_series)" 
+				                            attrs="{'readonly' : [('type_key', 'not in', ['cfdi','other'])]}"/> </td>
+				                        <td> <label for="cbb_number" string="Folio"/> </td>
+				                        <td> <field name="cbb_number" 
+				                            attrs="{'readonly' : [('type_key', 'not in', ['cfdi','other'])], 'required' : [('type_key', '=', 'other')]}"/> </td>
+				                        <td> <label for="foreign_invoice" string="No fact"/> </td>
+				                        <td> <field name="foreign_invoice"
+				                            attrs="{'readonly' : [('type_key', '!=', 'foreign')], 'required' : [('type_key', '=', 'foreign')]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="origin_account_id" string="Cuenta origen"/> </td>
+				                    	<td colspan="2">
+				                    	    <field name="origin_account_id" domain="[('account_id.rfc', '!=', False)]" context="{'is_origin' : True}" on_change="onchange_account(origin_account_id, context)"
+				                    	        attrs="{'invisible' : [('show_native_accs', '=', True)], 'readonly' : [('type_key', 'not in', ['check', 'transfer'])], 
+				                    	        		'required' : [('type_key', '=', 'check'), ('show_native_accs', '!=', True)]}"/>
+				                    	    <field name="origin_native_accid" context="{'is_native' : True, 'is_origin' : True}" on_change="onchange_account(origin_native_accid, context)"
+				                    	        attrs="{'invisible' : [('show_native_accs', '!=', True)], 'readonly' : [('type_key', 'not in', ['check', 'transfer'])], 
+				                    	        		'required' : [('type_key', '=', 'check'), ('show_native_accs', '=', True)]}"/>
+				                    	</td>
+				                    	<td> 
+				                    	    <field name="show_native_accs" style="padding-left:3px" context="{'is_origin' : True, 'is_native' : show_native_accs}"
+				                    	        on_change="onchange_options(show_native_accs, origin_account_id, origin_native_accid, context)"
+				                    	        attrs="{'invisible' : [('type_key', 'not in', ['check','transfer'])]}"/>
+				                    	    <label string="clientes / proveedores" style="color:#1c7bad;right-padding:3px"
+				                    	        attrs="{'invisible' : [('type_key', 'not in', ['check','transfer'])]}"/>
+				                    	</td>
+				                    	<td> <label for="rfc" string="R.F.C."/> </td>
+				                    	<td> <field name="rfc" on_change="onchange_rfc(rfc)"
+				                    	    attrs="{'readonly' : [('type_key', 'in', ['foreign', 'payment'])], 'required' : [('type_key', 'in', ['cfdi','check','transfer','other'])]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="origin_bank_id" string="Banco nac. (origen)"/></td>
+				                        <td colspan="2">
+				                            <field name="origin_bank_id" on_change="onchange_bank(origin_bank_id, context)" context="{'is_origin' : True}"
+				                                attrs="{'readonly' : [('type_key', 'not in', ['check', 'transfer'])], 'required' : [('type_key', 'in', ['check', 'transfer'])]}"/>
+				                        </td>
+				                        <td> <label for="origin_frgn_bank" string="Banco ext. (origen)" /> </td>
+				                        <td colspan="2">
+				                            <field name="origin_frgn_bank"
+				                                attrs="{'readonly' : [('type_key', 'not in', ['check', 'transfer'])], 'required' : [('origin_bank_key', '=', '999')]}"/>
+				                        </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="destiny_account_id" string="Cuenta destino"/> </td>
+				                    	<td colspan="2">
+				                    	    <field name="destiny_account_id" domain="[('account_id.rfc', '!=', False)]" on_change="onchange_account(destiny_account_id, context)"
+				                    	        attrs="{'invisible' : [('show_native_accs1', '=', True)], 'readonly' : [('type_key', '!=', 'transfer')], 
+				                    	        		'required' : [('type_key', '=', 'transfer'), ('show_native_accs1', '!=', True)]}"
+				                    	        context="{'type_key' : type_key}"/>
+				                    	    <field name="destiny_native_accid" context="{'is_native' : True, 'type_key' : type_key}" on_change="onchange_account(destiny_native_accid, context)"
+				                    	        attrs="{'invisible' : [('show_native_accs1', '!=', True)], 'readonly' : [('type_key', '!=', 'transfer')], 
+				                    	        		'required' : [('type_key', '=', 'transfer'), ('show_native_accs1', '=', True)]}"/>
+				                   	    </td>
+				                    	<td>
+				                    	    <field name="show_native_accs1" style="padding-left : 3px" context="{'is_native' : show_native_accs1, 'type_key' : type_key}"
+				                    	        on_change="onchange_options(show_native_accs1, destiny_account_id, destiny_native_accid, context)"
+				                    	        attrs="{'invisible' : [('type_key', '!=', 'transfer')]}"/>
+				                    	    <label string="clientes / proveedores" style="color:#1c7bad;right-padding:3px"
+				                    	        attrs="{'invisible' : [('type_key', '!=', 'transfer')]}"/>
+				                    	</td>
+				                    	<td> <label for="rfc2" string="R.F.C."/> </td>
+				                    	<td> <field name="rfc2" on_change="onchange_rfc(rfc2)"
+				                    	    attrs="{'readonly' : [('type_key', '=', 'foreign')], 'required' : [('type_key', 'in', ['cfdi','check','transfer','payment','other'])]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="destiny_bank_id" string="Banco nac. (destino)"/></td>
+				                        <td colspan="2">
+				                            <field name="destiny_bank_id" on_change="onchange_bank(destiny_bank_id, context)" 
+				                                attrs="{'readonly' : [('type_key', '!=', 'transfer')], 'required' : [('type_key', '=', 'transfer')]}"/>
+				                        </td>
+				                        <td> <label for="destiny_frgn_bank" string="Banco ext. (destino)"/> </td>
+				                        <td colspan="2"> 
+				                            <field name="destiny_frgn_bank" 
+				                            	attrs="{'readonly' : [('type_key', '!=', 'transfer')], 'required' : [('destiny_bank_key', '=', '999')]}"/>
+				                        </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="payee_id" string="Beneficiario"/> </td>
+				                        <td colspan="2">
+				                            <field name="payee_id" on_change="onchange_payee(payee_id, context)" context="{'is_native' : True, 'type_key' : type_key}"
+				                                attrs="{'invisible' : [('show_native_accs2', '=', True)], 'readonly' : [('type_key', 'not in', ['check','transfer','payment'])], 
+				                                		'required' : [('type_key', 'in', ['check','transfer','payment']), ('show_native_accs2', '!=', True)]}"/>
+				                            <field name="payee_acc_id" domain="[('rfc', '!=', False)]" on_change="onchange_payee(payee_acc_id, context)" context="{'type_key' : type_key}"
+				                                attrs="{'invisible' : [('show_native_accs2', '!=', True)], 'readonly' : [('type_key', 'not in', ['check','transfer','payment'])], 
+				                                		'required' : [('type_key', 'in', ['check','transfer','payment']), ('show_native_accs2', '=', True)]}"/>
+				                        </td>
+				                        <td>
+				                    	    <field name="show_native_accs2" style="padding-left : 3px" context="{'type_key' : type_key, 'is_native' : not show_native_accs2}"
+				                    	        on_change="onchange_payee_opts(show_native_accs2, payee_id, payee_acc_id, context)"
+				                    	        attrs="{'invisible' : [('type_key', 'not in', ['check','transfer','payment'])]}"/>
+				                    	    <label string="cuentas contables" style="color:#1c7bad;right-padding:3px"
+				                    	        attrs="{'invisible' : [('type_key', 'not in', ['check','transfer','payment'])]}"/>
+				                    	</td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="foreign_taxid" string="Tax Id extranjero"/> </td>
+				                        <td colspan="2"> <field name="foreign_taxid" attrs="{'readonly' : [('type_key', '!=', 'foreign')], 'required' : [('type_key', '=', 'foreign')]}"/> </td> <td/>
+				                        <td> <label for="foreign_taxid" string="No. cheque"/> </td>
+				                        <td> <field name="check_number" attrs="{'readonly' : [('type_key', '!=', 'check')], 'required' : [('type_key', '=', 'check')]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="pay_method_id" string="Método de pago"/> </td>
+				                        <td colspan="2"> <field name="pay_method_id" attrs="{'readonly' : [('type_key', '!=', 'payment')], 'required' : [('type_key', '=', 'payment')]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="amount" string="Monto total"/> </td>
+				                        <td> <field name="amount" attrs="{'required' : [('type_key', 'in', ['cfdi','check','transfer','payment','other','foreign'])]}"/> </td>
+				                        <td> <label for="compl_date" string="Fecha"/> </td>
+				                        <td> <field name="compl_date" attrs="{'required' : [('type_key', 'in', ['cfdi', 'other', 'foreign', 'check','transfer','payment'])]}"/> </td>
+				                    </tr>
+				                    <tr>
+				                        <td> <label for="compl_currency_id" /> </td>
+				                        <td> <field name="compl_currency_id" /> </td>
+				                        <td> <label for="exchange_rate" /> </td>
+				                        <td> <field name="exchange_rate" /> </td>
+				                    </tr>
+				                </table>
+				        	</form>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+                
+    </data>
+    
+</openerp>

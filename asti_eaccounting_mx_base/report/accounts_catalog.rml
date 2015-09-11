@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<document filename="Accounts catalog.pdf">
+  <template title="Trial Balance" author="ASTI Services" allowSplitting="20" pageSize="8.5in,11in" leftMargin="0.5in" topMargin="1in">
+    <pageTemplate id="first">
+      <frame id="first" x1="20" y1="0" width="600" height="780"/>
+    </pageTemplate>
+  </template>
+  <stylesheet>
+    <blockTableStyle id="Standard_Outline">
+      <blockAlignment value="LEFT"/>
+      <blockValign value="TOP"/>
+    </blockTableStyle>
+    <blockTableStyle id="Table1">
+      <blockAlignment value="LEFT"/>
+      <blockValign value="TOP"/>
+    </blockTableStyle>
+    <blockTableStyle id="Table2">
+      <blockAlignment value="LEFT"/>
+      <blockValign value="TOP"/>
+      <lineStyle kind="LINEABOVE" colorName="#000000" start="0,0" stop="0,0"/>
+      <lineStyle kind="LINEBELOW" colorName="#000000" start="0,-1" stop="0,-1"/>
+      <lineStyle kind="LINEABOVE" colorName="#000000" start="1,0" stop="1,0"/>
+      <lineStyle kind="LINEBELOW" colorName="#000000" start="1,-1" stop="1,-1"/>
+      <lineStyle kind="LINEABOVE" colorName="#000000" start="2,0" stop="2,0"/>
+      <lineStyle kind="LINEBELOW" colorName="#000000" start="2,-1" stop="2,-1"/>
+      <lineStyle kind="LINEABOVE" colorName="#000000" start="3,0" stop="3,0"/>
+      <lineStyle kind="LINEBELOW" colorName="#000000" start="3,-1" stop="3,-1"/>
+      <lineStyle kind="LINEABOVE" colorName="#000000" start="4,0" stop="4,0"/>
+      <lineStyle kind="LINEBELOW" colorName="#000000" start="4,-1" stop="4,-1"/>
+      <lineStyle kind="LINEABOVE" colorName="#000000" start="5,0" stop="5,0"/>
+      <lineStyle kind="LINEBELOW" colorName="#000000" start="5,-1" stop="5,-1"/>
+    </blockTableStyle>
+    <initialize>
+      <paraStyle name="all" alignment="justify"/>
+    </initialize>
+  </stylesheet>
+  <story>
+  	<blockTable>
+  		<tr>
+  			<td>
+  				<blockTable colWidths="130.0,340.0,130.0" style="Table1">
+      				<tr>
+        				<td>
+        					<para fontSize="9.0"> <font color="white"> </font> </para>
+				        </td>
+        				<td>
+          					<para fontSize="18.0" alignment="CENTER" spaceAfter="6.0"><b>CONTABILIDAD ELECTRÓNICA</b></para>
+          					<para fontSize="13.0" alignment="CENTER" spaceAfter="2.0"><b>CATÁLOGO CONTABLE</b></para>
+          					<para fontSize="11.0" alignment="CENTER" spaceAfter="1.0"><b>Período [[ period ]]</b></para>
+          					<para fontSize="10.0" alignment="CENTER" spaceAfter="2.0"><b>[[ rfc ]]</b></para>
+        				</td>
+        				<td>
+          					<para fontSize="9.0"> <font color="white"> </font> </para>
+          					<para fontSize="9.0"> <font color="white"> </font> </para>
+          					<para fontSize="9.0"> <font color="white"> </font> </para>
+			          		<para fontSize="7.0" alignment="CENTER" leading="7.2">Fecha de impresión[['\n' + print_date + '\n' + print_time]]</para>
+			        	</td>
+			      	</tr>
+    			</blockTable>
+  			</td>
+  		</tr>
+  	</blockTable>
+  	<blockTable colWidths="240,230,50,40" style="Table2" repeatRows="1">
+  		<tr>
+    		<td>
+				<para fontSize="8.0" alignment="LEFT" leading="8.2">Código SAT</para>
+  			</td>
+  			<td>
+  				<para fontSize="8.0" alignment="LEFT" leading="8.2">Cuenta</para>
+			</td>
+  			<td>
+  				<para fontSize="8.0" alignment="CENTER" leading="8.2">Naturaleza</para>
+  			</td>
+			<td>
+  				<para fontSize="8.0" alignment="CENTER" leading="8.2">Nivel</para>
+  			</td>
+	  	</tr>
+  	</blockTable>
+  	<pto>
+  		<pto_header>
+	  		<blockTable colWidths="240,230,50,40" style="Table2" repeatRows="1">
+	  			<tr>
+    				<td>
+						<para fontSize="8.0" alignment="LEFT" leading="8.2">Código SAT</para>
+  					</td>
+  					<td>
+	  					<para fontSize="8.0" alignment="LEFT" leading="8.2">Cuenta</para>
+					</td>
+  					<td>
+  						<para fontSize="8.0" alignment="CENTER" leading="8.2">Naturaleza</para>
+	  				</td>
+					<td>
+  						<para fontSize="8.0" alignment="CENTER" leading="8.2">Nivel</para>
+	  				</td>
+		  		</tr>
+  			</blockTable>
+  		</pto_header>
+  		<section>
+  			<para>[[repeatIn(objects,'o')]]</para>
+  			<blockTable colWidths="240,230,50,40">
+  				<tr>
+  					<td>
+  						<para fontSize="6.0" alignment="LEFT" leading="6.0" valign="MIDDLE">[['[' + o.sat_code_id.key + '] - ' + o.sat_code_id.name]]</para>
+  					</td>
+  					<td>
+  						<para fontSize="6.0" alignment="LEFT" leading="6.0">[['[' + o.code + '] - ' + o.name]]</para>
+  					</td>
+  					<td>
+  						<para fontSize="6.0" alignment="CENTER" leading="6.0">[['D' if o.in_debt else 'A']]</para>
+  					</td>
+  					<td>
+  						<para fontSize="6.0" alignment="CENTER" leading="6.0">[[o.level + 1 if o.level else 1]]</para>
+  					</td>
+  				</tr>
+  			</blockTable>
+  		</section>
+    </pto>
+  </story>
+</document>

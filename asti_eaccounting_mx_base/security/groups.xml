@@ -1,0 +1,19 @@
+<openerp>
+    
+    <data>
+        
+        <record model="res.groups" id="eaccounting_user_group">
+            <field name="name">Contabilidad electrónica (usuario)</field>
+        </record>
+        
+        <record model="res.groups" id="eaccounting_admin_group">
+            <field name="name">Contabilidad electrónica (administrador)</field>
+        </record>
+        
+        <record model="res.groups" id="eaccounting_lurker_group">
+            <field name="name">Contabilidad electrónica (mereodeador)</field>
+        </record>
+        
+    </data>
+    
+</openerp>

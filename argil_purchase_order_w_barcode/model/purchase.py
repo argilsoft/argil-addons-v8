@@ -38,13 +38,11 @@ class purchase_order(osv.osv):
             help="Read a product barcode to add it as new Line."),
         }
     
-#    def onchange_product_id(self, cr, uid, ids, pricelist_id, product_id, qty, uom_id,
-#            partner_id, date_order=False, fiscal_position_id=False, date_planned=False,
-#            name=False, price_unit=False, state='draft', context=None):
         
     def onchange_product_ean(self, cr, uid, ids, get_product_ean, pricelist_id, 
             partner_id, date_order=False, fiscal_position_id=False, date_planned=False, order_line=False,
-            context=None):        
+            context=None):
+		
         context = context or {}
         if not get_product_ean:
             return
@@ -76,17 +74,15 @@ class purchase_order(osv.osv):
         res = self.pool.get('purchase.order.line').onchange_product_id(cr, uid, ids, pricelist_id, product.id,
                                                                        1.0, product.uom_id.id, partner_id, date_order,
                                                                        fiscal_position_id, date_planned, name=False,
-                                                                       price_unit=False, state='draft', context=context)        
-        line = (0,0,{'product_id'   : product.id,
-                     'name'         : res['value']['name'],
-                     'date_planned' : res['value']['date_planned'],
-                     'product_qty'  : qty,
-                     'product_uom'  : res['value']['product_uom'],
-                     'price_unit'   : res['value']['price_unit'],
-                     'taxes_id'     : [(6,0,res['value']['taxes_id'])],
-                        }
-               )
-
+                                                                       price_unit=False, state='draft', context=context)
+		
+        res['value'].update({
+					'product_id'   : product.id,
+					'taxes_id': [(6, 0, res['value'].get('taxes_id', []))],
+					'partner_id' : partner_id,
+					'state' : 'draft',
+				})        
+        line = (0,0,res['value'])
         xorder_line = order_line and order_line or []
         xorder_line.append(line)
         return {'value': {'get_product_ean': False, 'order_line' : xorder_line}}

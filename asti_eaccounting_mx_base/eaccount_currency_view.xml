@@ -1,0 +1,62 @@
+<openerp>
+    
+    <data>
+        
+        <record id="eaccount_currency_search" model="ir.ui.view">
+            <field name="name">eaccount.currency.search</field>
+            <field name="model">eaccount.currency</field>
+            <field name="arch" type="xml">
+                <search string="Monedas oficiales del SAT">
+                    <field name="code"/>
+                    <field name="name"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="eaccount_currency_tree" model="ir.ui.view">
+            <field name="name">eaccount.currency.tree</field>
+            <field name="model">eaccount.currency</field>
+            <field name="arch" type="xml">
+                <tree string="Monedas oficiales del SAT">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="eaccount_currency_form" model="ir.ui.view">
+            <field name="name">eaccount.currency.form</field>
+            <field name="model">eaccount.currency</field>
+            <field name="arch" type="xml">
+                <form string="Monedas oficiales del SAT">
+					<group col="4" colspan="4">
+						<field name="code"/>
+						<field name="name"/>
+					</group>
+				</form>
+            </field>
+        </record>
+        
+        <record id="eaccount_currency_action" model="ir.actions.act_window">
+            <field name="name">Monedas oficiales</field>
+            <field name="res_model">eaccount.currency</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_type">form</field>
+        </record>
+        
+        <!-- changes to currencie's form -->
+        
+        <record id="eaccount_currency_form_inherited" model="ir.ui.view">
+            <field name="name">eaccount.currency.form.inherited</field>
+            <field name="model">res.currency</field>
+            <field name="inherit_id" ref="base.view_currency_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="sat_currency_id" />
+                </field>
+            </field>
+        </record>
+        
+    </data>
+    
+</openerp>

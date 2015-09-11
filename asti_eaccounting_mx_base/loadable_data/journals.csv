@@ -1,0 +1,9 @@
+code,view_id,name,sequence_id,type,journal_type
+D-001,Bank/Cash Journal View,Diario,Diario,general,Diario
+D-002,Journal View,Ventas,Ventas,sale,Ingresos
+D-003,Journal View,Notas de Crédito,Notas de Crédito,sale_refund,Diario
+D-004,Journal View,Notas de Cargo,Notas de Cargo,sale,Ingresos
+D-005,Journal View,Compras,Compras,purchase,Egresos
+D-006,Journal View,Notas de Crédito (Compras),Notas de Crédito (Compras),purchase_refund,Diario
+D-007,Journal View,Transferencias,Transferencias,bank,Ingresos
+D-008,Journal View,Cheque,Cheque,bank,Egresos

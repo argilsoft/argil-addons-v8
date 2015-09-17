@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<openerp>
+	<data>
+        
+        
+        <record model="ir.ui.view" id="view_pos_pos_form_pos_invoice">
+            <field name="name">pos.order.invoice</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+            <field name="arch" type="xml">
+                <button name="action_invoice" position="replace"></button>
+            </field>
+        </record>
+	  
+		<record id="product_uom_form_view_pos_invoice" model="ir.ui.view">
+			<field name="name">res.partner.pos.invoice.form.inherit</field>
+			<field name="model">product.uom</field>
+			<field name="inherit_id" ref="product.product_uom_form_view"/>
+			<field name="arch" type="xml">
+				<field name="rounding" position="after" >
+                    <field name="use_4_invoice_general_public" 
+                            attrs="{'invisible':[('uom_type','!=','reference')]}"/>
+				</field>
+			</field>
+		</record>
+				
+				
+		<record id="view_partner_pos_invoice_form" model="ir.ui.view">
+			<field name="name">res.partner.pos.invoice.form.inherit</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="account.view_partner_property_form"/>
+			<field name="arch" type="xml">
+				<field name="property_account_position" position="after" >
+                    <field name="use_as_general_public" 
+                           on_change="on_change_use_as_general_public(use_as_general_public)"
+                           attrs="{'invisible': [('invoice_2_general_public', '=', True)]}"/>
+					<field name="invoice_2_general_public" 
+                           attrs="{'invisible': [('use_as_general_public', '=', True)]}"/>/>
+				</field>
+			</field>
+		</record>
+
+	  
+		<record id="view_pos_order_invoice_wizard" model="ir.ui.view">
+			<field name="name">POS Order to Invoice</field>
+			<field name="model">pos.order.invoice_wizard</field>
+			<field name="arch" type="xml">
+				<form string="POS Order to Invoice">
+					<group string="This wizard will create Invoice(s) from selected POS Orders" col="4" colspan="4">
+						<field name="date"
+							   on_change="on_change_date(date)"/>
+						<field name="period_id"/>
+						<field name="journal_id" colspan="4" domain="[('type', '=', 'sale')]"/>
+						<separator string="Tickets to be invoiced" colspan="4" />
+						<field name="ticket_ids" colspan="4" nolabel="1">
+                            <tree editable="top" create="false">
+                                <field name="date_order" />
+                                <field name="ticket_id" />
+                                <field name="session_id" />
+                                <field name="pos_reference" />
+                                <field name="user_id" />
+                                <field name="amount_total" />
+                                <field name="partner_id" />
+                                <field name="invoice_2_general_public" attrs="{'readonly': [('partner_id', '=', False)]}"/>
+                            </tree>
+                        </field>
+					</group>
+					<footer>
+						<button name="create_invoice" string="Create Invoice" type="object" class="oe_highlight"/>
+						or
+						<button string="Cancel" class="oe_link" special="cancel"/>
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		
+        <act_window name="Create Invoices"
+            res_model="pos.order.invoice_wizard"
+            src_model="pos.order"
+            key2="client_action_multi"
+            multi="True"
+            view_mode="form"
+            view_type="form"
+            target="new"
+            id="action_pos_order_invoice"/>
+		
+		
+
+  </data>
+</openerp>

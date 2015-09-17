@@ -1,0 +1,286 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* argil_pos_invoice
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-09-17 21:42+0000\n"
+"PO-Revision-Date: 2015-09-17 16:51-0500\n"
+"Last-Translator: Israel Cruz Argil <israel.cruz@argil.mx>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: es_MX\n"
+"X-Generator: Poedit 1.8.4\n"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_account_move
+msgid "Account Entry"
+msgstr "Entrada contable"
+
+#. module: argil_pos_invoice
+#: view:pos.order.invoice_wizard:argil_pos_invoice.view_pos_order_invoice_wizard
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: argil_pos_invoice
+#: help:pos.order,invoice_2_general_public:0
+#: help:res.partner,invoice_2_general_public:0
+msgid "Check this if this Customer will be invoiced as General Public"
+msgstr "Active este Check si este cliente será usado para las Facturas de Público en General"
+
+#. module: argil_pos_invoice
+#: help:res.partner,use_as_general_public:0
+msgid "Check this if this Customer will be used to create Daily Invoice for General Public"
+msgstr "Active este Check si este cliente será usado para las Facturas de Público en General"
+
+#. module: argil_pos_invoice
+#: view:pos.order.invoice_wizard:argil_pos_invoice.view_pos_order_invoice_wizard
+msgid "Create Invoice"
+msgstr "Crear Factura de Cliente"
+
+#. module: argil_pos_invoice
+#: model:ir.actions.act_window,name:argil_pos_invoice.action_pos_order_invoice
+msgid "Create Invoices"
+msgstr "Crear Factura de Cliente"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,create_uid:0
+#: field:pos.order.invoice_wizard.line,create_uid:0
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,create_date:0
+#: field:pos.order.invoice_wizard.line,create_date:0
+msgid "Created on"
+msgstr "Creado en"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,date:0
+#: field:pos.order.invoice_wizard.line,date_order:0
+msgid "Date"
+msgstr "Fecha"
+
+#. module: argil_pos_invoice
+#: constraint:res.partner:0
+msgid "Error ! You can have only one Partner checked as Use as General Public..."
+msgstr "Error ! Solo puede tener una Empresa marcada para usarse como Cliente Público en General..."
+
+#. module: argil_pos_invoice
+#: constraint:product.uom:0
+msgid "Error ! You can have only one Unit of Measure checked to Use for General Public Invoice..."
+msgstr "Error ! Solo puede tener una Unidad de Medida marcada para usarse en Facturas de Cliente Público en General..."
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:113
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:206
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:214
+#, python-format
+msgid "Error!"
+msgstr "Error!"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,period_id:0
+msgid "Force period"
+msgstr "Periodo"
+
+#. module: argil_pos_invoice
+#: field:pos.order,invoice_2_general_public:0
+#: field:pos.order.invoice_wizard.line,invoice_2_general_public:0
+msgid "General Public"
+msgstr "Público en General"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,id:0 field:pos.order.invoice_wizard.line,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,journal_id:0
+msgid "Invoice Journal"
+msgstr "Diario de Facturación"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:225
+#, python-format
+msgid "Invoice created from POS Orders"
+msgstr "Factura creada de Tickets del PdV"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:218
+#, python-format
+msgid "Invoice from POS Orders"
+msgstr "Factura creada de Tickets del PdV"
+
+#. module: argil_pos_invoice
+#: field:res.partner,invoice_2_general_public:0
+msgid "Invoice to General Public Partner"
+msgstr "Facturar a Público en General"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_account_move_line
+msgid "Journal Items"
+msgstr "Partidas"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,write_uid:0
+#: field:pos.order.invoice_wizard.line,write_uid:0
+msgid "Last Updated by"
+msgstr "Actualizado por"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,write_date:0
+#: field:pos.order.invoice_wizard.line,write_date:0
+msgid "Last Updated on"
+msgstr "Actualizado en"
+
+#. module: argil_pos_invoice
+#: view:pos.order.invoice_wizard:argil_pos_invoice.view_pos_order_invoice_wizard
+msgid "POS Order to Invoice"
+msgstr "Tickets del PdV a Facturar"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:219
+#, python-format
+msgid "POS Orders from %s"
+msgstr "Tickets del PdV del %s"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard.line,ticket_id:0
+msgid "POS Ticket"
+msgstr "Ticket de PdV"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_res_partner
+#: field:pos.order.invoice_wizard.line,partner_id:0
+msgid "Partner"
+msgstr "Empresa"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_stock_picking
+msgid "Picking List"
+msgstr "Lista de albaranes"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:206
+#, python-format
+msgid "Please configure a Partner as default for Use as General Public Partner."
+msgstr "Por favor configure una Empresa a usar por defecto como Cliente Público en General"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:214
+#, python-format
+msgid "Please configure an Unit of Measure as default for use as UoM in Invoice Lines."
+msgstr "Por favor configure una Unidad de Medida a usar por defecto para las Facturas de Cliente Público en General"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:113
+#, python-format
+msgid "Please provide a partner for the sale."
+msgstr "Por favor indique la Empresa para la venta"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_pos_order
+msgid "Point of Sale"
+msgstr "Terminal Punto de Venta"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_product_uom
+msgid "Product Unit of Measure"
+msgstr "Unidad de medida del producto"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_stock_quant
+msgid "Quants"
+msgstr "Quants"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard.line,pos_reference:0
+msgid "Reference"
+msgstr "Referencia"
+
+#. module: argil_pos_invoice
+#: code:addons/argil_pos_invoice/model/pos_invoice.py:242
+#, python-format
+msgid "SALES TO OPEN MARKET OF DAY OF %s FROM STORE %s WITH %s"
+msgstr "VENTA AL PUBLICO EN GENERAL DEL DIA %s DEL ALMACEN %s CON %s"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard.line,user_id:0
+msgid "Salesman"
+msgstr "Vendedir"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard.line,session_id:0
+msgid "Session"
+msgstr "Sesión"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_stock_move
+msgid "Stock Move"
+msgstr "Movimiento stock"
+
+#. module: argil_pos_invoice
+#: help:pos.order.invoice_wizard,date:0
+msgid "This date will be used as the invoice date and period will be chosen accordingly!"
+msgstr "La fecha será usada como la Fecha de Factura y el periodo debe ser acorde a ella !"
+
+#. module: argil_pos_invoice
+#: view:pos.order.invoice_wizard:argil_pos_invoice.view_pos_order_invoice_wizard
+msgid "This wizard will create Invoice(s) from selected POS Orders"
+msgstr "Este asistente creará factura(s) de los Tickets de PdV seleccionados"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard,ticket_ids:0
+msgid "Tickets to Invoice"
+msgstr "Tickets a Facturar"
+
+#. module: argil_pos_invoice
+#: view:pos.order.invoice_wizard:argil_pos_invoice.view_pos_order_invoice_wizard
+msgid "Tickets to be invoiced"
+msgstr "Tickets a Facturar"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard.line,amount_total:0
+msgid "Total"
+msgstr "Total"
+
+#. module: argil_pos_invoice
+#: field:res.partner,use_as_general_public:0
+msgid "Use as General Public Partner"
+msgstr "Usar como Empresa Público en General"
+
+#. module: argil_pos_invoice
+#: field:product.uom,use_4_invoice_general_public:0
+msgid "Use for General Public Invoice"
+msgstr "Usar para Facturación al Público en General"
+
+#. module: argil_pos_invoice
+#: field:pos.order.invoice_wizard.line,wiz_id:0
+msgid "Wizard"
+msgstr "Asistente"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_pos_order_invoice_wizard
+msgid "Wizard to create Invoices from several POS Tickets"
+msgstr "Asistente para crear Facturas de varios Tickets del PdV"
+
+#. module: argil_pos_invoice
+#: model:ir.model,name:argil_pos_invoice.model_pos_order_invoice_wizard_line
+msgid "Wizard to create Invoices from several POS Tickets2"
+msgstr "Asistente para crear Facturas de varios Tickets del PdV2"
+
+#. module: argil_pos_invoice
+#: help:pos.order.invoice_wizard,journal_id:0
+msgid "You can select here the journal to use for the Invoice that will be created."
+msgstr "Puede seleccionar el Diario de Facturación a usar para la Factura que será creada."
+
+#. module: argil_pos_invoice
+#: view:pos.order.invoice_wizard:argil_pos_invoice.view_pos_order_invoice_wizard
+msgid "or"
+msgstr "o"

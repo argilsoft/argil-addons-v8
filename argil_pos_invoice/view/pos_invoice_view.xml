@@ -2,6 +2,18 @@
 <openerp>
 	<data>
         
+        <record model="ir.ui.view" id="view_account_journal_form_pos_invoice">
+            <field name="name">account.journal.pos_invoice</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <field name="self_checkout_payment_method" position="after">
+                    <field name="pos_dont_create_entries" attrs="{'invisible':[('type','not in', ('cash',))]}"/>
+                    <field name="pos_group_entries_by_statement" attrs="{'invisible':[('type','not in', ('cash',))]}"/>
+                </field>
+            </field>
+        </record>
+
         
         <record model="ir.ui.view" id="view_pos_pos_form_pos_invoice">
             <field name="name">pos.order.invoice</field>

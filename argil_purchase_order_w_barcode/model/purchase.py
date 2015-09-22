@@ -58,7 +58,7 @@ class purchase_order(osv.osv):
                           }
                 return {'value' : {'get_product_ean':False},'warning':warning }
                 
-                
+        
         product_obj = self.pool.get('product.product')
         prod_ids = product_obj.search(cr, uid, [('ean13','=',product_ean)], limit=1)
         if not prod_ids:
@@ -75,11 +75,12 @@ class purchase_order(osv.osv):
                                                                        1.0, product.uom_id.id, partner_id, date_order,
                                                                        fiscal_position_id, date_planned, name=False,
                                                                        price_unit=False, state='draft', context=context)
-		
+
         res['value'].update({
 					'product_id'   : product.id,
 					'taxes_id': [(6, 0, res['value'].get('taxes_id', []))],
 					'partner_id' : partner_id,
+                    'product_qty' : qty,
 					'state' : 'draft',
 				})        
         line = (0,0,res['value'])

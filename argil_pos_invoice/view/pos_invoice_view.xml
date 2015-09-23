@@ -2,18 +2,6 @@
 <openerp>
 	<data>
         
-        <record model="ir.ui.view" id="view_account_journal_form_pos_invoice">
-            <field name="name">account.journal.pos_invoice</field>
-            <field name="model">account.journal</field>
-            <field name="inherit_id" ref="account.view_account_journal_form"/>
-            <field name="arch" type="xml">
-                <field name="self_checkout_payment_method" position="after">
-                    <field name="pos_dont_create_entries" attrs="{'invisible':[('type','not in', ('cash',))]}"/>
-                    <field name="pos_group_entries_by_statement" attrs="{'invisible':[('type','not in', ('cash',))]}"/>
-                </field>
-            </field>
-        </record>
-
         
         <record model="ir.ui.view" id="view_pos_pos_form_pos_invoice">
             <field name="name">pos.order.invoice</field>
@@ -24,33 +12,6 @@
             </field>
         </record>
 	  
-		<record id="product_uom_form_view_pos_invoice" model="ir.ui.view">
-			<field name="name">res.partner.pos.invoice.form.inherit</field>
-			<field name="model">product.uom</field>
-			<field name="inherit_id" ref="product.product_uom_form_view"/>
-			<field name="arch" type="xml">
-				<field name="rounding" position="after" >
-                    <field name="use_4_invoice_general_public" 
-                            attrs="{'invisible':[('uom_type','!=','reference')]}"/>
-				</field>
-			</field>
-		</record>
-				
-				
-		<record id="view_partner_pos_invoice_form" model="ir.ui.view">
-			<field name="name">res.partner.pos.invoice.form.inherit</field>
-			<field name="model">res.partner</field>
-			<field name="inherit_id" ref="account.view_partner_property_form"/>
-			<field name="arch" type="xml">
-				<field name="property_account_position" position="after" >
-                    <field name="use_as_general_public" 
-                           on_change="on_change_use_as_general_public(use_as_general_public)"
-                           attrs="{'invisible': [('invoice_2_general_public', '=', True)]}"/>
-					<field name="invoice_2_general_public" 
-                           attrs="{'invisible': [('use_as_general_public', '=', True)]}"/>/>
-				</field>
-			</field>
-		</record>
 
 	  
 		<record id="view_pos_order_invoice_wizard" model="ir.ui.view">

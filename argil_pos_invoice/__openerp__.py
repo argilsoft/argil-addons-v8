@@ -56,7 +56,8 @@ with a check already active, only POS Order with value in Customer column can be
                 "point_of_sale"
             ], 
     "data": [
-        "view/pos_invoice_view.xml"
+        "view/pos_invoice_view.xml",
+        "view/account_view.xml"
     ], 
     "test": [], 
     "js": [], 

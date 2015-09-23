@@ -28,171 +28,11 @@ from openerp.tools.translate import _
 import time
 
 
-class account_cash_statement2(osv.osv):
-    _inherit = 'account.bank.statement'
-
-    print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x"
-    print "x X x X x X x X x X x X x X x X x X x X x X x X x X x X x X"
-    print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x"
-    print "Necesito saber si esto se hereda correctamente..."
-    print "x X x X x X x X x X x X x X x X x X x X x X x X x X x X x X"
-    print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-    print "x X x X x X x X x X x X x X x X x X x X x X x X x X x X x X"
-    
-    def button_confirm_bank(self, cr, uid, ids, context=None):
-        if context is None:
-            context = {}
-
-        print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-        print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-        print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-        print "O O O O O O O O O O O O O O O O O O O O O O O O O O O O O O "
-        print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-        print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-        print "X x X x X x X x X x X x X x X x X x X x X x X x X x X x X x "
-    
-            
-        return super(account_cash_statement, self).button_confirm_bank(cr, uid, ids, context=context)
-    
-        for st in self.browse(cr, uid, ids, context=context):
-            j_type = st.journal_id.type
-            if not self.check_status_condition(cr, uid, st.state, journal_type=j_type):
-                continue
-
-            self.balance_check(cr, uid, st.id, journal_type=j_type, context=context)
-            if (not st.journal_id.default_credit_account_id) \
-                    or (not st.journal_id.default_debit_account_id):
-                raise osv.except_osv(_('Configuration Error!'), _('Please verify that an account is defined in the journal.'))
-            for line in st.move_line_ids:
-                if line.state != 'valid':
-                    raise osv.except_osv(_('Error!'), _('The account entries lines are not in valid state.'))
-            move_ids = []
-            for st_line in st.line_ids:
-                if not st_line.amount:
-                    continue
-                if st_line.account_id and not st_line.journal_entry_id.id:
-                    #make an account move as before
-                    vals = {
-                        'debit': st_line.amount < 0 and -st_line.amount or 0.0,
-                        'credit': st_line.amount > 0 and st_line.amount or 0.0,
-                        'account_id': st_line.account_id.id,
-                        'name': st_line.name
-                    }
-                    self.pool.get('account.bank.statement.line').process_reconciliation(cr, uid, st_line.id, [vals], context=context)
-                elif not st_line.journal_entry_id.id:
-                    raise osv.except_osv(_('Error!'), _('All the account entries lines must be processed in order to close the statement.'))
-                move_ids.append(st_line.journal_entry_id.id)
-            if move_ids:
-                self.pool.get('account.move').post(cr, uid, move_ids, context=context)
-            self.message_post(cr, uid, [st.id], body=_('Statement %s confirmed, journal items were created.') % (st.name,), context=context)
-        self.link_bank_to_partner(cr, uid, ids, context=context)
-        return self.write(cr, uid, ids, {'state': 'confirm', 'closing_date': time.strftime("%Y-%m-%d %H:%M:%S")}, context=context)
-
-
-
-        
-
-
-class account_move(osv.osv):
-
-    _inherit = 'account.move'
-
-    def post(self, cr, uid, ids, context=None):
-        if context is None:
-            context = {}
-        move_ids = ids
-        for move in self.browse(cr, uid, ids):
-            if move.journal_id.pos_dont_create_entries:
-                self.unlink(cr, uid, [move.id])
-                move_ids.remove(move.id)
-        res = True
-        if move_ids:
-            res = super(account_move, self).post(cr, uid, move_ids, context)
-        return res
-
-
-class account_journal(osv.osv):
-    _inherit = 'account.journal'
-    """
-	Adds check to indicate if Cash Account Journal will not create Account Entries
-    """
-
-    _columns = {
-        'pos_dont_create_entries' : fields.boolean("POS - Don't Create Account Entries", 
-                                               help="Related to POS Payment Journals. If you check this journal \n"+\
-                                                    "and it's a POS Payment Journal then there will not be account \n"+\
-                                                    "entries for POS Payments"),
-        'pos_group_entries_by_statement' : fields.boolean("POS - Group Entries by Statement"),
-
-    }
-
-    
-
-
-class product_uom(osv.osv):
-    _inherit = 'product.uom'
-    """
-	Adds check to indicate if Partner is General Public
-    """
-
-    _columns = {
-        'use_4_invoice_general_public' : fields.boolean('Use for General Public Invoice'),
-    }
-    
-    def _check_use_4_invoice_general_public(self, cr, uid, ids, context=None):        
-        for record in self.browse(cr, uid, ids, context=context):
-            if record.use_4_invoice_general_public:
-                res = self.search(cr, uid, [('use_4_invoice_general_public', '=', 1)], context=None)                
-                if res and res[0] and res[0] != record.id:
-                    return False
-        return True
-
-    
-    _constraints = [
-        (_check_use_4_invoice_general_public, 'Error ! You can have only one Unit of Measure checked to Use for General Public Invoice...', ['use_4_invoice_general_public']),
-        ]
-
-
-
-class res_partner(osv.osv):
-    _name = 'res.partner'
-    _inherit = 'res.partner'
-    """
-	Adds check to indicate Partner is General Public
-    """
-
-    _columns = {
-        'invoice_2_general_public'  : fields.boolean('Invoice to General Public Partner', help="Check this if this Customer will be invoiced as General Public"),
-        'use_as_general_public'     : fields.boolean('Use as General Public Partner', help="Check this if this Customer will be used to create Daily Invoice for General Public"),
-    }
-    
-    def _check_use_as_general_public(self, cr, uid, ids, context=None):
-        for record in self.browse(cr, uid, ids, context=context):
-            if record.use_as_general_public:
-                res = self.search(cr, uid, [('use_as_general_public', '=', 1)], context=None)                
-                if res and res[0] and res[0] != record.id:
-                    return False
-        return True
-
-    
-    _constraints = [
-        (_check_use_as_general_public, 'Error ! You can have only one Partner checked as Use as General Public...', ['use_as_general_public']),
-        ]
-        
-    
-    def on_change_use_as_general_public(self, cr, uid, ids, use_as_general_public=False, context=None):
-        if context is None: context = {}
-        res = {}
-        if not use_as_general_public:
-            return res
-        
-        if use_as_general_public:
-            return {'value':{'invoice_2_general_public':False}}
-    
     
     
 class pos_order(osv.osv):
-    _inherit = 'pos.order'
+    _name = "pos.order"
+    _inherit = "pos.order"
     
     
     _columns = {
@@ -200,6 +40,27 @@ class pos_order(osv.osv):
     }
 
 
+    def get_customer_id_for_general_public(self, cr, uid, ids, context=None):
+        partner_obj = self.pool.get('res.partner')
+        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
+        if not partner_id:
+            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
+
+        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
+        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
+        return partner_id
+
+
+    def get_customer_for_general_public(self, cr, uid, ids, context=None):
+        partner_obj = self.pool.get('res.partner')
+        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
+        if not partner_id:
+            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
+
+        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
+        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0]
+        return partner_id
+    
     
     def action_invoice2(self, cr, uid, ids, journal_id, context=None):
         inv_ref = self.pool.get('account.invoice')
@@ -212,11 +73,9 @@ class pos_order(osv.osv):
                 continue
             if not order.partner_id:
                 raise osv.except_osv(_('Error!'), _('Please provide a partner for the sale.'))
-#############
             partner_obj = self.pool.get('res.partner')
             addr = partner_obj.address_get(cr, uid, order.partner_id.parent_id and order.partner_id.parent_id.id or order.partner_id.id, ['delivery', 'invoice', 'contact'])
             partner = partner_obj.browse(cr, uid, addr['invoice'])[0]
-#############
             acc = partner.property_account_receivable.id
             inv = {
                 'name': order.name,
@@ -269,6 +128,10 @@ class pos_order(osv.osv):
         inv_ref = self.pool.get('account.invoice')
         inv_line_ref = self.pool.get('account.invoice.line')
         product_obj = self.pool.get('product.product')
+        bsl_obj = self.pool.get('account.bank.statement.line')
+
+        partner = self.get_customer_for_general_public(cr, uid, ids, context)
+        
         inv_ids = []
         po_ids = []
         lines = {}
@@ -280,6 +143,9 @@ class pos_order(osv.osv):
                 res = self.action_invoice2(cr, uid, [order.id], journal_id, context=context)
                 inv_ids.append(res)
             else:
+                if order.session_id.state == 'opened':
+                    bsl_ids = [x.id for x in order.statement_ids]
+                    bsl_obj.write(cr, uid, bsl_ids, {'partner_id': partner.id}, context=context)
                 po_ids.append(order.id)
                 for line in order.lines:
                     ## Agrupamos las líneas según el impuesto
@@ -301,13 +167,6 @@ class pos_order(osv.osv):
                         lines[key]['price_subtotal_incl'] += val['price_subtotal_incl']
 
         if po_ids:
-            partner_obj = self.pool.get('res.partner')
-            partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
-            if not partner_id:
-                raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
-
-            addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
-            partner = partner_obj.browse(cr, uid, addr['invoice'])[0]
 
             uom_obj = self.pool.get('product.uom')
             uom_id = uom_obj.search(cr, uid, [('use_4_invoice_general_public','=',1)], limit=1, context=context)
@@ -316,12 +175,12 @@ class pos_order(osv.osv):
             
             acc = partner.property_account_receivable.id
             inv = {
-                'name'      : _('Invoice from POS Orders'),
+                'name'      : _('From POS Orders'),
                 'origin'    : _('POS Orders from %s' % (date[8:10]+'/'+date[5:7]+'/'+date[0:4])),
                 'account_id': acc,
                 'journal_id': journal_id or order.sale_journal.id,
                 'type'      : 'out_invoice',
-                'reference' : order.pos_reference,
+                'reference' : order.session_id.name,
                 'partner_id': partner.id,
                 'comment'   : _('Invoice created from POS Orders'),
                 'currency_id': order.pricelist_id.currency_id.id, # considering partner's sale pricelist's currency
@@ -331,6 +190,7 @@ class pos_order(osv.osv):
                 inv['account_id'] = acc
             inv_id = inv_ref.create(cr, uid, inv, context=context)
 
+            
             self.write(cr, uid, po_ids, {'invoice_id': inv_id, 'state': 'invoiced'}, context=context)
             inv_ids.append(inv_id)
             for key, line in lines.iteritems():
@@ -390,8 +250,22 @@ class pos_order_invoice_wizard(osv.osv_memory):
         if not record_ids:
             return {}
         tickets = []
+        
+        
+        partner_obj = self.pool.get('res.partner')
+        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
+        if not partner_id:
+            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
+
+        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
+        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
+
+        
+        
+        
+        
         for ticket in pos_order_obj.browse(cr, uid, record_ids, context):
-            if ticket.state !='paid':
+            if ticket.state not in ('paid','done') and not ticket.invoice_id:
                 continue
             tickets.append({
 					'ticket_id'		: ticket.id,
@@ -401,7 +275,7 @@ class pos_order_invoice_wizard(osv.osv_memory):
 					'user_id'		:  ticket.user_id.id,
                     'partner_id'	:  ticket.partner_id and ticket.partner_id.id or False,
 					'amount_total'	:  ticket.amount_total,
-					'invoice_2_general_public' : ticket.partner_id.invoice_2_general_public if ticket.partner_id else True,
+					'invoice_2_general_public' : (ticket.partner_id.invoice_2_general_public or ticket.partner_id.id == partner_id) if ticket.partner_id else True,
 					
 					})
         res.update(ticket_ids=tickets)
@@ -494,128 +368,82 @@ class pos_session(osv.osv):
     _inherit = "pos.session"
 
     
-    def wkf_action_close2(self, cr, uid, ids, context=None):
+    def wkf_action_close(self, cr, uid, ids, context=None):
         # Close CashBox
         if context is None:
             context = {}
         res = super(pos_session,self).wkf_action_close(cr, uid, ids, context)
         am_obj = self.pool.get('account.move')
+        pos_order_obj = self.pool.get('pos.order')
         
-        partner_obj = self.pool.get('res.partner')
-        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
-        if not partner_id:
-            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
-
-        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
-        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
-        print "partner_id: ", partner_id
-        
+#        partner_obj = self.pool.get('res.partner')
+#        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
+#        if not partner_id:
+#            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
+#
+#        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
+#        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
         
         for record in self.browse(cr, uid, ids, context=context):
-            for st in record.statement_ids:
-                if st.journal_id.pos_group_entries_by_statement:
-                    move_ids = []
-                    cr.execute("select distinct move_id from account_move_line where statement_id=%s limit 1;" % (st.id))
-                    move_id = cr.fetchall()[0]
-                    print "move_id: ", move_id[0]
-                    cr.execute("select distinct move_id from account_move_line where statement_id=%s;" % (st.id))
-                    for move in am_obj.browse(cr, uid, cr.fetchall()):
-                        #if move.state=='posted':
-                        #    move.button_cancel(cr, uid, move.id)
-                        move_id != move.id and move_ids.append(move.id)
-                    
-                    print "move_id: ", move_id
-                    print "st.id: ", st.id
-                    print "partner_id: ", partner_id
-                    print "move_ids: ", move_ids
-                    print "move_ids: ", ', '.join(move_ids)
-                    (move_id, st.id, partner_id, st.id, ', '.join(move_ids))
-                    sql = """
-                                            drop table if exists argil_account_move_line;
-                        create table argil_account_move_line
-                        as
-                        select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
-                            statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
-                            %s::integer as move_id,
-                            case 
-                            when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
-                            else 0
-                            end::float debit,
-                            case 
-                            when sum(credit) - sum(debit) > 0 then sum(credit) - sum(debit)
-                            else 0
-                            end::float credit
-                            from account_move_line
-                            where statement_id=%s
-                            group by create_uid, write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref);
-                        
-                        update argil_account_move_line
-                        set partner_id = %s 
-                        where partner_id is null;
-                        
-                        delete from account_move_line where statement_id=%s;
-                        delete from account_move where id in %s;
-                        
-                        insert into account_move_line
-                        (
-                            create_date, write_date, create_uid,  write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-                            debit, credit)
-                        (select create_date, write_date, create_uid,  write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-                            debit, credit
-                        from argil_account_move_line);
-                        drop table if exists argil_account_move_line;
+#            for st in record.statement_ids:
+#                if st.journal_id.pos_group_entries_by_statement:
+#                    move_ids = []
+#                    cr.execute("select distinct move_id from account_move_line where statement_id=%s limit 1;" % (st.id))
+#                    move_id = cr.fetchall()[0][0]
+#                    cr.execute("select distinct move_id from account_move_line where statement_id=%s;" % (st.id))
+#                    xids = [x[0] for x in cr.fetchall()]
+#                    for move in am_obj.browse(cr, uid, xids):
+#                        if move_id != move.id:
+#                            move_ids.append(str(move.id))
+#                    
+#                    cr.execute("""
+#                        drop table if exists argil_account_move_line;
+#                        create table argil_account_move_line
+#                        as
+#                        select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
+#                            statement_id, partner_id, blocked, journal_id, centralisation, 
+#                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
+#                            %s::integer as move_id,
+#                            case 
+#                            when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
+#                            else 0
+#                            end::float debit,
+#                            case 
+#                            when sum(credit) - sum(debit) > 0 then sum(credit) - sum(debit)
+#                            else 0
+#                            end::float credit
+#                            from account_move_line
+#                            where statement_id=%s
+#                            group by create_uid, write_uid, date, company_id, 
+#                            statement_id, partner_id, blocked, journal_id, centralisation, 
+#                            state, account_id, period_id, not_move_diot, ref;
+#                        
+#                        update argil_account_move_line
+#                        set partner_id = %s 
+#                        where partner_id is null;
+#                        
+#                        delete from account_move_line where statement_id=%s;
+#                        delete from account_move where id in (%s);
+#                        
+#                        insert into account_move_line
+#                        (
+#                            create_date, write_date, create_uid,  write_uid, date, company_id, 
+#                            statement_id, partner_id, blocked, journal_id, centralisation,
+#                            state, account_id, period_id, not_move_diot, ref, name, move_id,
+#                            debit, credit)
+#                        (select create_date, write_date, create_uid,  write_uid, date, company_id, 
+#                            statement_id, partner_id, blocked, journal_id, centralisation,
+#                            state, account_id, period_id, not_move_diot, ref, name, move_id,
+#                            debit, credit
+#                        from argil_account_move_line);
+#                        drop table if exists argil_account_move_line;
+#
+#                    """ % (move_id, st.id, partner_id, st.id, ', '.join(move_ids)))                    
+#            
+            order_ids = pos_order_obj.search(cr, uid, [('session_id','=',record.id)], context=context)
 
-                    """ % (move_id, st.id, partner_id, st.id, ', '.join(move_ids))
-                    print "sql: ", sql
-                    cr.execute("""
-                        drop table if exists argil_account_move_line;
-                        create table argil_account_move_line
-                        as
-                        select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
-                            statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
-                            %s::integer as move_id,
-                            case 
-                            when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
-                            else 0
-                            end::float debit,
-                            case 
-                            when sum(credit) - sum(debit) > 0 then sum(credit) - sum(debit)
-                            else 0
-                            end::float credit
-                            from account_move_line
-                            where statement_id=%s
-                            group by create_uid, write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref);
-                        
-                        update argil_account_move_line
-                        set partner_id = %s 
-                        where partner_id is null;
-                        
-                        delete from account_move_line where statement_id=%s;
-                        delete from account_move where id in %s;
-                        
-                        insert into account_move_line
-                        (
-                            create_date, write_date, create_uid,  write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-                            debit, credit)
-                        (select create_date, write_date, create_uid,  write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-                            debit, credit
-                        from argil_account_move_line);
-                        drop table if exists argil_account_move_line;
-
-                    """ % (move_id, st.id, partner_id, st.id, ', '.join(move_ids)))                    
-
+            if order_ids:
+                for order in pos_order_obj.browse(cr, uid, order_ids, context=context):
+                    if order.account_move and order.account_move.state == 'draft':
+                        am_obj.post(cr, uid, [order.account_move.id])
         return res

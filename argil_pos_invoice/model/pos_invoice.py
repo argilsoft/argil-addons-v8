@@ -366,7 +366,7 @@ class pos_session(osv.osv):
     _inherit = "pos.session"
 
     
-    def wkf_action_close(self, cr, uid, ids, context=None):
+    def wkf_action_close2(self, cr, uid, ids, context=None):
         # Close CashBox
         if context is None:
             context = {}

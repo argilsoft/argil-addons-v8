@@ -62,64 +62,62 @@ class pos_order(osv.osv):
         return partner_id
     
     
-    def action_invoice2(self, cr, uid, ids, journal_id, context=None):
+    def action_invoice2(self, cr, uid, order, journal_id, context=None):
         inv_ref = self.pool.get('account.invoice')
         inv_line_ref = self.pool.get('account.invoice.line')
         product_obj = self.pool.get('product.product')
         inv_ids = []
-        for order in self.pool.get('pos.order').browse(cr, uid, ids, context=context):
-            if order.invoice_id:
-                inv_ids.append(order.invoice_id.id)
-                continue
-            if not order.partner_id:
-                raise osv.except_osv(_('Error!'), _('Please provide a partner for the sale.'))
-            partner_obj = self.pool.get('res.partner')
-            addr = partner_obj.address_get(cr, uid, order.partner_id.parent_id and order.partner_id.parent_id.id or order.partner_id.id, ['delivery', 'invoice', 'contact'])
-            partner = partner_obj.browse(cr, uid, addr['invoice'])[0]
-            acc = partner.property_account_receivable.id
-            inv = {
-                'name': order.name,
-                'origin': order.name,
-                'account_id': acc,
-                'journal_id': journal_id and journal_id or order.sale_journal.id,
-                'type': 'out_invoice',
-                'reference': order.name,
-                'partner_id': partner.id, #order.partner_id.id,
-                'fiscal_position': partner.property_account_position and partner.property_account_position.id or False,
-                'payment_term' : partner.property_payment_term and partner.property_payment_term.id or False,
-                'comment': order.note or '',
-                'currency_id': order.pricelist_id.currency_id.id, # considering partner's sale pricelist's currency
+        if order.invoice_id:
+            return False
+        if not order.partner_id:
+            raise osv.except_osv(_('Error!'), _('Please provide a partner for the sale.'))
+        partner_obj = self.pool.get('res.partner')
+        addr = partner_obj.address_get(cr, uid, order.partner_id.parent_id and order.partner_id.parent_id.id or order.partner_id.id, ['delivery', 'invoice', 'contact'])
+        partner = partner_obj.browse(cr, uid, addr['invoice'])[0]
+        acc = partner.property_account_receivable.id
+        inv = {
+            'name': order.name,
+            'origin': order.name,
+            'account_id': acc,
+            'journal_id': journal_id and journal_id or order.sale_journal.id,
+            'type': 'out_invoice',
+            'reference': order.name,
+            'partner_id': partner.id, #order.partner_id.id,
+            'fiscal_position': partner.property_account_position and partner.property_account_position.id or False,
+            'payment_term' : partner.property_payment_term and partner.property_payment_term.id or False,
+            'comment': order.note or '',
+            'currency_id': order.pricelist_id.currency_id.id, # considering partner's sale pricelist's currency
+        }
+        inv.update(inv_ref.onchange_partner_id(cr, uid, [], 'out_invoice', partner.id)['value'])
+        if not inv.get('account_id', None):
+            inv['account_id'] = acc
+        inv_id = inv_ref.create(cr, uid, inv, context=context)
+        self.write(cr, uid, [order.id], {'invoice_id': inv_id, 'state': 'invoiced'}, context=context)
+        inv_ids.append(inv_id)
+        for line in order.lines:
+            inv_line = {
+                'invoice_id': inv_id,
+                'product_id': line.product_id.id,
+                'quantity': line.qty,
             }
-            inv.update(inv_ref.onchange_partner_id(cr, uid, [], 'out_invoice', partner.id)['value'])
-            if not inv.get('account_id', None):
-                inv['account_id'] = acc
-            inv_id = inv_ref.create(cr, uid, inv, context=context)
-            self.write(cr, uid, [order.id], {'invoice_id': inv_id, 'state': 'invoiced'}, context=context)
-            inv_ids.append(inv_id)
-            for line in order.lines:
-                inv_line = {
-                    'invoice_id': inv_id,
-                    'product_id': line.product_id.id,
-                    'quantity': line.qty,
-                }
-                inv_name = product_obj.name_get(cr, uid, [line.product_id.id], context=context)[0][1]
-                inv_line.update(inv_line_ref.product_id_change(cr, uid, [],
-                                                               line.product_id.id,
-                                                               line.product_id.uom_id.id,
-                                                               line.qty, partner_id = partner.id,
-                                                               fposition_id=partner.property_account_position.id)['value'])
-                if not inv_line.get('account_analytic_id', False):
-                    inv_line['account_analytic_id'] = \
-                        self._prepare_analytic_account(cr, uid, line,
-                                                       context=context)
-                inv_line['price_unit'] = line.price_unit
-                inv_line['discount'] = line.discount
-                inv_line['name'] = inv_name
-                inv_line['invoice_line_tax_id'] = [(6, 0, inv_line['invoice_line_tax_id'])]
-                inv_line_ref.create(cr, uid, inv_line, context=context)
-            inv_ref.button_reset_taxes(cr, uid, [inv_id], context=context)
-            self.signal_workflow(cr, uid, [order.id], 'invoice')
-            inv_ref.signal_workflow(cr, uid, [inv_id], 'validate')
+            inv_name = product_obj.name_get(cr, uid, [line.product_id.id], context=context)[0][1]
+            inv_line.update(inv_line_ref.product_id_change(cr, uid, [],
+                                                           line.product_id.id,
+                                                           line.product_id.uom_id.id,
+                                                           line.qty, partner_id = partner.id,
+                                                           fposition_id=partner.property_account_position.id)['value'])
+            if not inv_line.get('account_analytic_id', False):
+                inv_line['account_analytic_id'] = \
+                    self._prepare_analytic_account(cr, uid, line,
+                                                   context=context)
+            inv_line['price_unit'] = line.price_unit
+            inv_line['discount'] = line.discount
+            inv_line['name'] = inv_name
+            inv_line['invoice_line_tax_id'] = [(6, 0, inv_line['invoice_line_tax_id'])]
+            inv_line_ref.create(cr, uid, inv_line, context=context)
+        inv_ref.button_reset_taxes(cr, uid, [inv_id], context=context)
+        self.signal_workflow(cr, uid, [order.id], 'invoice')
+        inv_ref.signal_workflow(cr, uid, [inv_id], 'validate')
         return inv_ids and inv_ids[0] or False
     
     
@@ -140,7 +138,7 @@ class pos_order(osv.osv):
                 inv_ids.append(order.invoice_id.id)
                 continue
             if not order.invoice_2_general_public:
-                res = self.action_invoice2(cr, uid, [order.id], journal_id, context=context)
+                res = self.action_invoice2(cr, uid, order, journal_id, context=context)
                 inv_ids.append(res)
             else:
                 if order.session_id.state == 'opened':
@@ -251,21 +249,21 @@ class pos_order_invoice_wizard(osv.osv_memory):
             return {}
         tickets = []
         
-        
-        partner_obj = self.pool.get('res.partner')
-        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
-        if not partner_id:
-            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
+        partner_id = pos_order_obj.get_customer_id_for_general_public(cr, uid, ids=[])
+#        partner_obj = self.pool.get('res.partner')
+#        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
+#        if not partner_id:
+#            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
 
-        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
-        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
-
-        
-        
-        
+#        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
+#        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
         
         for ticket in pos_order_obj.browse(cr, uid, record_ids, context):
-            if ticket.state not in ('paid','done') and not ticket.invoice_id:
+            #print "ticket.name: ", ticket.name
+            #print "ticket.state: ", ticket.state
+            #print "ticket.invoice_id: ", bool(ticket.invoice_id)
+            
+            if ticket.state in ('invoiced','cancel') and bool(ticket.invoice_id):
                 continue
             tickets.append({
 					'ticket_id'		: ticket.id,

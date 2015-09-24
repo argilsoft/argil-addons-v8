@@ -159,11 +159,18 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                     continue
                 for statement in order.statement_ids:
                     aml_ids = [x.id for x in statement.journal_entry_id.line_id]
-                    data_aml_ids += aml_ids
-                    
-                    if not statement.journal_entry_id.partner_id:
-                        am_obj.write(cr, uid, [statement.journal_entry_id.id], {'partner_id': invoice.partner_id.id})
-                        aml_obj.write(cr, uid, aml_ids, {'partner_id': invoice.partner_id.id})
+                    if aml_ids: data_aml_ids += aml_ids
+                    #print "aml_ids: ", aml_ids
+                    if aml_ids and not statement.journal_entry_id.partner_id:
+                        am_id = statement.journal_entry_id.id
+                        #print "am_id: ", am_id
+                        if statement.journal_entry_id.state=='posted':
+                            am_obj.button_cancel(cr, uid, [am_id])
+                        cr.execute("""update account_move set partner_id=%s where id=%s;
+                                      update account_move_line set partner_id=%s where move_id=%s;
+                        """ % (invoice.partner_id.id,am_id,invoice.partner_id.id, am_id))
+                        #am_obj.write(cr, uid, [statement.journal_entry_id.id], {'partner_id': invoice.partner_id.id})
+                        #aml_obj.write(cr, uid, aml_ids, {'partner_id': invoice.partner_id.id})
                         
                     elif statement.journal_entry_id.partner_id.id != invoice.partner_id.id:
                             aml_obj.write(cr, uid, [statement.journal_entry_id.id], {'partner_id': invoice.partner_id.id})
@@ -226,7 +233,7 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                         from argil_account_move_line);
                         drop table if exists argil_account_move_line;
 
-                    """ % (move_id, cad, xstatement, invoice.partner_id.id, cad, xstatement, ', '.join(move_ids)))                    
+                    """ % (move_id, cad, xstatement, invoice.partner_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))                    
 
 
 

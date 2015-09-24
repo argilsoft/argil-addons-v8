@@ -196,16 +196,16 @@ class pos_order(osv.osv):
                 inv_line = {
                     'invoice_id': inv_id,
                     'product_id': False,
-                    'name'      : _('VENTA AL PUBLICO EN GENERAL DEL DIA %s DEL ALMACEN %s CON %s' % \
-                                    #VENTA AL PUBLICO EN GENERAL DEL DIA %s DEL ALMACEN %s CON %S' % \
-                                    (date[8:10]+'/'+date[5:7]+'/'+date[0:4], order.location_id.name, line['tax_names'])),
+                    'name'      : ('VENTA AL PUBLICO EN GENERAL DEL DIA %s DEL ALMACEN %s' % (date[8:10]+'/'+date[5:7]+'/'+date[0:4], order.location_id.name)) +
+                                   (line['tax_names'] and ('CON %s' % line['tax_names']) or ''),
                     'quantity'  : 1,
                     'account_id': order.lines[0].product_id.property_account_income.id or order.lines[0].product_id.categ_id.property_account_income_categ.id,
                     'uos_id'    : uom_id[0],
                     'price_unit': line['price_subtotal'],
                     'discount'  : 0,
-                    'invoice_line_tax_id' : [(6, 0, line['taxes_id'].split(','))]
+                    'invoice_line_tax_id' : [(6, 0, line['taxes_id'].split(','))] if line['taxes_id'] else False,
                 }
+
                 inv_line_ref.create(cr, uid, inv_line, context=context)
             inv_ref.button_reset_taxes(cr, uid, [inv_id], context=context)
             self.signal_workflow(cr, uid, po_ids, 'invoice')

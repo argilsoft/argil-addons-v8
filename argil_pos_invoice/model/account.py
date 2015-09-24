@@ -177,63 +177,63 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                                             
                     data_statement_ids.append(statement.statement_id.id)
                     data_statement_line_ids.append(statement.id)
-            if data_aml_ids:
-                move_ids = []
-                cad = ','.join(str(e) for e in data_aml_ids)
-                cr.execute("select distinct statement_id from account_move_line where id in (%s);" % (cad))
-                a = cr.fetchall()
-                statement_ids = [x[0] for x in a]
-                for xstatement in statement_ids:
-                    cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s limit 1;" % (cad, xstatement))
-                    move_id = cr.fetchall()[0][0]
-                    cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s;" % (cad, xstatement))
-                    xids = [x[0] for x in cr.fetchall()]
-                    for move in am_obj.browse(cr, uid, xids):
-                        if move_id != move.id:
-                            move_ids.append(str(move.id))
-                    cr.execute("""
-                        drop table if exists argil_account_move_line;
-                        create table argil_account_move_line
-                        as
-                        select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
-                            statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
-                            %s::integer as move_id,
-                            case 
-                            when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
-                            else 0
-                            end::float debit,
-                            case 
-                            when sum(credit) - sum(debit) > 0 then sum(credit) - sum(debit)
-                            else 0
-                            end::float credit
-                            from account_move_line
-                            where id in (%s) and statement_id=%s
-                            group by create_uid, write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref;
-
-                        update argil_account_move_line
-                        set partner_id = %s 
-                        where partner_id is null;
-
-                        delete from account_move_line where id in (%s) and statement_id=%s;
-                        delete from account_move where id in (%s);
-
-                        insert into account_move_line
-                        (
-                            create_date, write_date, create_uid,  write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-                            debit, credit)
-                        (select create_date, write_date, create_uid,  write_uid, date, company_id, 
-                            statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-                            debit, credit
-                        from argil_account_move_line);
-                        drop table if exists argil_account_move_line;
-
-                    """ % (move_id, cad, xstatement, invoice.partner_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))                    
+#            if data_aml_ids:
+#                move_ids = []
+#                cad = ','.join(str(e) for e in data_aml_ids)
+#                cr.execute("select distinct statement_id from account_move_line where id in (%s);" % (cad))
+#                a = cr.fetchall()
+#                statement_ids = [x[0] for x in a]
+#                for xstatement in statement_ids:
+#                    cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s limit 1;" % (cad, xstatement))
+#                    move_id = cr.fetchall()[0][0]
+#                    cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s;" % (cad, xstatement))
+#                    xids = [x[0] for x in cr.fetchall()]
+#                    for move in am_obj.browse(cr, uid, xids):
+#                        if move_id != move.id:
+#                            move_ids.append(str(move.id))
+#                    cr.execute("""
+#                        drop table if exists argil_account_move_line;
+#                        create table argil_account_move_line
+#                        as
+#                        select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
+#                            statement_id, partner_id, blocked, journal_id, centralisation, 
+#                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
+#                            %s::integer as move_id,
+#                            case 
+#                            when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
+#                            else 0
+#                            end::float debit,
+#                            case 
+#                            when sum(credit) - sum(debit) > 0 then sum(credit) - sum(debit)
+#                            else 0
+#                            end::float credit
+#                            from account_move_line
+#                            where id in (%s) and statement_id=%s
+#                            group by create_uid, write_uid, date, company_id, 
+#                            statement_id, partner_id, blocked, journal_id, centralisation, 
+#                            state, account_id, period_id, not_move_diot, ref;
+#
+#                        update argil_account_move_line
+#                        set partner_id = %s 
+#                        where partner_id is null;
+#
+#                        delete from account_move_line where id in (%s) and statement_id=%s;
+#                        delete from account_move where id in (%s);
+#
+#                        insert into account_move_line
+#                        (
+#                            create_date, write_date, create_uid,  write_uid, date, company_id, 
+#                            statement_id, partner_id, blocked, journal_id, centralisation,
+#                            state, account_id, period_id, not_move_diot, ref, name, move_id,
+#                            debit, credit)
+#                        (select create_date, write_date, create_uid,  write_uid, date, company_id, 
+#                            statement_id, partner_id, blocked, journal_id, centralisation,
+#                            state, account_id, period_id, not_move_diot, ref, name, move_id,
+#                            debit, credit
+#                        from argil_account_move_line);
+#                        drop table if exists argil_account_move_line;
+#
+#                    """ % (move_id, cad, xstatement, invoice.partner_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))                    
 
 
 

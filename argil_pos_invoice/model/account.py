@@ -54,11 +54,14 @@ class account_journal(osv.osv):
     """
 
     _columns = {
-        'pos_dont_create_entries' : fields.boolean("POS - Don't Create Account Entries", 
-                                               help="Related to POS Payment Journals. If you check this journal \n"+\
-                                                    "and it's a POS Payment Journal then there will not be account \n"+\
-                                                    "entries for POS Payments"),
-        #'pos_group_entries_by_statement' : fields.boolean("POS - Group Entries by Statement"),
+        'pos_dont_create_entries' : fields.boolean("No crear Pólizas de Tickets del POS", 
+                                               help="Si marca esta casilla entonces no se van a generar pólizas de\n"+\
+                                                    "los Ticketsde TPV (en el funcionamiento estándar se genera póliza\n"+\
+                                                    "contable por cada Ticket de Venta, pero de alguna manera se\n"+\
+                                                    "duplican las partidas cuando se crean las Facturas."),
+        'pos_payments_remove_entries' : fields.boolean("Eliminar Pagos del POS",
+                                                help="Las partidas contables generadas por los pagos de una TPV\n"+\
+                                                     "se eliminarán cuando se haga el cierre de Caja"),
 
     }
 
@@ -139,6 +142,15 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
 	}
 	
 
+    def get_aml_to_reconcile(self, cr, uid, ids, context=None):
+        am_obj = self.pool.get('account.move')
+        amls = []
+        for move in am_obj.browse(cr, uid, ids):
+            for line in move.line_id:
+                if line.account_id.type=='receivable':
+                    print "line: %s - %s - %s" % (move.name, line.account_id.code, line.account_id.name)
+                    amls.append(line.id)
+        return amls
 	
     def reconcile_invoice_with_pos_payments(self, cr, uid, ids, context=None):
         if context is None: context = {}
@@ -158,6 +170,8 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                 if order.state != 'invoiced':
                     continue
                 for statement in order.statement_ids:
+                    if statement.statement_id.journal_id.pos_payments_remove_entries: 
+                        continue
                     aml_ids = [x.id for x in statement.journal_entry_id.line_id]
                     if aml_ids: data_aml_ids += aml_ids
                     #print "aml_ids: ", aml_ids
@@ -186,6 +200,8 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                 for xstatement in statement_ids:
                     cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s limit 1;" % (cad, xstatement))
                     move_id = cr.fetchall()[0][0]
+                    cr.execute("""update account_bank_statement_line set journal_entry_id=%s where id in (%s);""" % 
+                               (move_id, ','.join(str(x) for x in data_statement_line_ids)))
                     cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s;" % (cad, xstatement))
                     xids = [x[0] for x in cr.fetchall()]
                     for move in am_obj.browse(cr, uid, xids):
@@ -216,6 +232,9 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                         update argil_account_move_line
                         set partner_id = %s 
                         where partner_id is null;
+                        
+                        update argil_account_move_line set account_id = %s
+                        where account_id in (select id from account_account where type='receivable');
 
                         delete from account_move_line where id in (%s) and statement_id=%s;
                         delete from account_move where id in (%s);
@@ -233,8 +252,10 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                         from argil_account_move_line);
                         drop table if exists argil_account_move_line;
 
-                    """ % (move_id, cad, xstatement, invoice.partner_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))                    
-
+                    """ % (move_id, cad, xstatement, invoice.partner_id.id, invoice.account_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))
+                    
+                aml_to_reconcile = self.get_aml_to_reconcile(cr, uid, [move_id, invoice.move_id.id])    
+                res2 = aml_obj.reconcile_partial(cr, uid, aml_to_reconcile, context=context)
 
 
         #raise osv.except_osv('Pausa!', 'Pausa')

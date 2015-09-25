@@ -39,7 +39,7 @@
                         </field>
 					</group>
 					<footer>
-						<button name="create_invoice" string="Create Invoice" type="object" class="oe_highlight"/>
+						<button name="create_invoice_from_pos" string="Create Invoice" type="object" class="oe_highlight"/>
 						or
 						<button string="Cancel" class="oe_link" special="cancel"/>
 					</footer>

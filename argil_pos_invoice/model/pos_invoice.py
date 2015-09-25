@@ -122,12 +122,12 @@ class pos_order(osv.osv):
     
     
     def action_invoice3(self, cr, uid, ids, date, journal_id=False, context=None):
-        if context is None: context = {}
+        if context is None: context = {}        
         inv_ref = self.pool.get('account.invoice')
         inv_line_ref = self.pool.get('account.invoice.line')
         product_obj = self.pool.get('product.product')
         bsl_obj = self.pool.get('account.bank.statement.line')
-
+        
         partner = self.get_customer_for_general_public(cr, uid, ids, context)
         
         inv_ids = []
@@ -241,15 +241,18 @@ class pos_order_invoice_wizard(osv.osv_memory):
         return journal and journal[0] or False
 	
     def default_get(self, cr, uid, fields, context=None):
+        #print "context: ", context
         if context is None: context = {}
+        #print "context: ", context
         res = super(pos_order_invoice_wizard, self).default_get(cr, uid, fields, context=context)
+        #print "context: ", context
         record_ids = context.get('active_ids', [])
         pos_order_obj = self.pool.get('pos.order')
         if not record_ids:
             return {}
         tickets = []
         
-        partner_id = pos_order_obj.get_customer_id_for_general_public(cr, uid, ids=[])
+        partner_id = pos_order_obj.get_customer_id_for_general_public(cr, uid, record_ids, context)
 #        partner_obj = self.pool.get('res.partner')
 #        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
 #        if not partner_id:
@@ -277,6 +280,7 @@ class pos_order_invoice_wizard(osv.osv_memory):
 					
 					})
         res.update(ticket_ids=tickets)
+        #print "res: ", res
         return res
 
     def _get_period(self, cr, uid, context=None):
@@ -326,19 +330,21 @@ class pos_order_invoice_wizard(osv.osv_memory):
         return {'value': {'period_id': period}}
 
 	
-    def create_invoice(self, cr, uid, ids, context=None):
+    def create_invoice_from_pos(self, cr, uid, ids, context=None):
         if context is None: context = {}
-        for rec in self.browse(cr, uid, ids):
-            ids_to_set_as_general_public, ids_to_invoice = [], []
+            
+        ids_to_set_as_general_public, ids_to_invoice = [], []
+        res = {}
+        for rec in self.browse(cr, uid, ids, context):
             for line in rec.ticket_ids:
                 ids_to_invoice.append(line.ticket_id.id)
                 if line.invoice_2_general_public:
                     ids_to_set_as_general_public.append(line.ticket_id.id)
-            if ids_to_set_as_general_public:
-                cr.execute("update pos_order set invoice_2_general_public=true where id IN %s",(tuple(ids_to_set_as_general_public),))                
+        if ids_to_set_as_general_public:
+            cr.execute("update pos_order set invoice_2_general_public=true where id IN %s",(tuple(ids_to_set_as_general_public),))                
         if ids_to_invoice:
-            return self.pool.get('pos.order').action_invoice3(cr, uid, ids_to_invoice, rec.date, rec.journal_id.id)
-        return False
+            res = self.pool.get('pos.order').action_invoice3(cr, uid, ids_to_invoice, rec.date, rec.journal_id.id)
+        return res or {'type': 'ir.actions.act_window_close'}
 
         
 class pos_order_invoice_wizard_line(osv.osv_memory):
@@ -349,7 +355,7 @@ class pos_order_invoice_wizard_line(osv.osv_memory):
     """
 		
     _columns = {
-        'wiz_id': fields.many2one('pos.order.invoice_wizard','Wizard'),		
+        'wiz_id'        : fields.many2one('pos.order.invoice_wizard','Wizard'),		
 		'ticket_id' 	: fields.many2one('pos.order', 'POS Ticket'),
 		'date_order'	: fields.related('ticket_id', 'date_order', type="datetime", string="Date", readonly=True),
 		'session_id'	: fields.related('ticket_id', 'session_id', type="many2one", relation="pos.session", string="Session", readonly=True),
@@ -372,72 +378,20 @@ class pos_session(osv.osv):
             context = {}
         res = super(pos_session,self).wkf_action_close(cr, uid, ids, context)
         am_obj = self.pool.get('account.move')
+        abs_obj = self.pool.get('account.move')
         pos_order_obj = self.pool.get('pos.order')
-        
-#        partner_obj = self.pool.get('res.partner')
-#        partner_id = partner_obj.search(cr, uid, [('use_as_general_public','=',1)], limit=1, context=context)
-#        if not partner_id:
-#            raise osv.except_osv(_('Error!'), _('Please configure a Partner as default for Use as General Public Partner.'))    
-#
-#        addr = partner_obj.address_get(cr, uid, partner_id, ['delivery', 'invoice', 'contact'])
-#        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
-        
+                
         for record in self.browse(cr, uid, ids, context=context):
-#            for st in record.statement_ids:
-#                if st.journal_id.pos_group_entries_by_statement:
-#                    move_ids = []
-#                    cr.execute("select distinct move_id from account_move_line where statement_id=%s limit 1;" % (st.id))
-#                    move_id = cr.fetchall()[0][0]
-#                    cr.execute("select distinct move_id from account_move_line where statement_id=%s;" % (st.id))
-#                    xids = [x[0] for x in cr.fetchall()]
-#                    for move in am_obj.browse(cr, uid, xids):
-#                        if move_id != move.id:
-#                            move_ids.append(str(move.id))
-#                    
-#                    cr.execute("""
-#                        drop table if exists argil_account_move_line;
-#                        create table argil_account_move_line
-#                        as
-#                        select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
-#                            statement_id, partner_id, blocked, journal_id, centralisation, 
-#                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
-#                            %s::integer as move_id,
-#                            case 
-#                            when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
-#                            else 0
-#                            end::float debit,
-#                            case 
-#                            when sum(credit) - sum(debit) > 0 then sum(credit) - sum(debit)
-#                            else 0
-#                            end::float credit
-#                            from account_move_line
-#                            where statement_id=%s
-#                            group by create_uid, write_uid, date, company_id, 
-#                            statement_id, partner_id, blocked, journal_id, centralisation, 
-#                            state, account_id, period_id, not_move_diot, ref;
-#                        
-#                        update argil_account_move_line
-#                        set partner_id = %s 
-#                        where partner_id is null;
-#                        
-#                        delete from account_move_line where statement_id=%s;
-#                        delete from account_move where id in (%s);
-#                        
-#                        insert into account_move_line
-#                        (
-#                            create_date, write_date, create_uid,  write_uid, date, company_id, 
-#                            statement_id, partner_id, blocked, journal_id, centralisation,
-#                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-#                            debit, credit)
-#                        (select create_date, write_date, create_uid,  write_uid, date, company_id, 
-#                            statement_id, partner_id, blocked, journal_id, centralisation,
-#                            state, account_id, period_id, not_move_diot, ref, name, move_id,
-#                            debit, credit
-#                        from argil_account_move_line);
-#                        drop table if exists argil_account_move_line;
-#
-#                    """ % (move_id, st.id, partner_id, st.id, ', '.join(move_ids)))                    
-#            
+            for statement in record.statement_ids:
+                am_ids = []
+                for statement_line in statement.line_ids:
+                    if statement_line.journal_entry_id.journal_id.pos_payments_remove_entries:
+                        am_id = statement_line.journal_entry_id.id
+                        am_ids.append(am_id)
+                        if statement_line.journal_entry_id.state == 'posted':
+                            am_obj.button_cancel(cr, uid, [am_id])
+                am_obj.unlink(cr, uid, am_ids)
+                
             order_ids = pos_order_obj.search(cr, uid, [('session_id','=',record.id)], context=context)
 
             if order_ids:

@@ -194,7 +194,7 @@ class files_generator_wizard(osv.osv_memory):
 
     def _validate_xml(self, cr, uid, schema, xmlTree, filename):
         validationResult = 'val_done'
-        schema_path = self._find_file_in_addons('asti_eaccounting_mx_base_70/sat_xsd', schema)
+        schema_path = self._find_file_in_addons('asti_eaccounting_mx_base/sat_xsd', schema)
         try:
             schema_file = open(schema_path, 'r')
         except IOError:
@@ -616,9 +616,11 @@ class files_generator_wizard(osv.osv_memory):
 
 
     def do_stamp(self, cr, uid, ids, context):
+        if context is None:
+            context = {}
         form = self.browse(cr, uid, ids)[0]
         stamp_res = 'stamp_done'
-        xslt_path = self._find_file_in_addons('asti_eaccounting_mx_base_70/sat_xslt', form.xml_target + '.xslt')
+        xslt_path = self._find_file_in_addons('asti_eaccounting_mx_base/sat_xslt', form.xml_target + '.xslt')
         try:
             xslt_file = open(xslt_path, 'r')
         except:
@@ -639,10 +641,27 @@ class files_generator_wizard(osv.osv_memory):
         xmlTree = et.ElementTree(et.fromstring(b64dec(form.primary_file)))
         transformedDocument = str(xslt(xmlTree))
         user = self.pool.get('res.users').browse(cr, uid, uid)
-        allConfiguredCerts = user.company_id._get_current_certificate(cr, uid, [user.company_id.id])
-        if user.company_id.id not in allConfiguredCerts.keys() or not allConfiguredCerts[user.company_id.id]:
+        ##########
+        certificate_obj = self.pool.get('res.company.facturae.certificate')
+        certificate_ids = certificate_obj.search(cr, uid, [
+                ('company_id', '=', user.company_id.id),
+                ('date_start', '<=', time.strftime('%Y-%m-%d')),
+                ('date_end', '>=', time.strftime('%Y-%m-%d')),
+                ('active', '=', True),
+            ], limit=1)
+        certificate_id = certificate_ids and certificate_ids[0] or False
+        if not certificate_id:
             raise osv.except_osv(u'Informaci\xf3n faltante', u'No se ha encontrado una configuraci\xf3n de certificados disponible para la compa\xf1\xeda %s' % user.company_id.name)
-        eCert = self.pool.get('res.company.facturae.certificate').browse(cr, uid, [allConfiguredCerts[user.company_id.id]])[0]
+        #########
+        #allConfiguredCerts = user.company_id._get_current_certificate(cr, uid, [user.company_id.id], context=ctx)
+        #allConfiguredCerts = user.company_id.certificate_id.id
+        #print "allConfiguredCerts: ", allConfiguredCerts
+        #if user.company_id.id not in allConfiguredCerts.keys() or not allConfiguredCerts[user.company_id.id]:
+        #    raise osv.except_osv(u'Informaci\xf3n faltante', u'No se ha encontrado una configuraci\xf3n de certificados disponible para la compa\xf1\xeda %s' % user.company_id.name)
+        #eCert = self.pool.get('res.company.facturae.certificate').browse(cr, uid, [allConfiguredCerts[user.company_id.id]])[0]        
+        ##########
+        eCert = self.pool.get('res.company.facturae.certificate').browse(cr, uid, [certificate_id])[0]
+        ##########
         if not eCert.certificate_key_file_pem:
             raise osv.except_osv(u'Informaci\xf3n faltante', 'Se necesita una clave en formato PEM para poder sellar el documento')
         crypter = RSA.load_key_string(b64dec(eCert.certificate_key_file_pem))

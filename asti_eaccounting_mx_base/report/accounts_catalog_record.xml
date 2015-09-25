@@ -3,7 +3,7 @@
     <data>
         
         <report auto="False" id="ea_accounts_catalog_rml" model="account.account" name="rml.ceCatalogosContables" header="False"
-            rml="asti_eaccounting_mx_base_70/report/accounts_catalog.rml" string="Catálogos Contables RML (CE)" multi="True"/>
+            rml="asti_eaccounting_mx_base/report/accounts_catalog.rml" string="Catálogos Contables RML (CE)" multi="True"/>
         
     </data>
     

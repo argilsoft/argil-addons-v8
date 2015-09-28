@@ -26,7 +26,7 @@ from openerp.osv import fields, osv
 
 class moveline_info_manager(osv.osv_memory):
     _name = 'moveline.info.manager'
-    _columns = {'line_id': fields.many2one('account.move.line', 'Line id', required=True),
+    _columns = {'line_id': fields.many2one('account.move.line', 'Line id'),#, required=True),
      'line_name': fields.related('line_id', 'name', type='char', string='Nombre', readonly=True),
      'line_account': fields.related('line_id', 'account_id', type='many2one', relation='account.account', string='Cuenta', readonly=True),
      'debit': fields.related('line_id', 'debit', type='float', string='Debe', readonly=True),

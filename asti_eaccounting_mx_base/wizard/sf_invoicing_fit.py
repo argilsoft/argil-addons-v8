@@ -32,7 +32,7 @@ class sf_invoicing_fit(osv.osv_memory):
         if res:
             attObj = self.pool.get('ir.attachment')
             cfdi = self.browse(cr, uid, ids)[0]
-            invoice_id = self.pool.get('account.invoice').browse(cr, uid, cfdi.id_source)
+            invoice_id = self.pool.get('account.invoice').browse(cr, uid, cfdi.invoice_id.id)
             line_id = [ ln.id for ln in invoice_id.move_id.line_id if ln.account_id.type == 'receivable' ]
             company = self.pool.get('res.users').browse(cr, uid, uid).company_id
             if not company.auto_mode_enabled:

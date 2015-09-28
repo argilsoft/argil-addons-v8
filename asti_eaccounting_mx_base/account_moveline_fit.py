@@ -17,8 +17,8 @@ eaccount_complement_types()
 class eaccount_complements(osv.osv):
     _name = 'eaccount.complements'
     _description = 'Complementos para contabilidad electr\xc3\xb3nica'
-    _columns = {'move_line_id': fields.many2one('account.move.line', 'Move line'),
-     'move_id': fields.many2one('account.move', 'Move'),
+    _columns = {'move_line_id': fields.many2one('account.move.line', 'Move line', ondelete='cascade'),
+     'move_id': fields.many2one('account.move', 'Move', ondelete='cascade'),
      'file_data': fields.binary('Adjuntar'),
      'type_id': fields.many2one('eaccount.complement.types', 'Tipo ', help='Elija el tipo de complemento que desea anexar a la p\xc3\xb3liza.'),
      'type_key': fields.char('Type key', size=20),
@@ -270,6 +270,16 @@ class account_moveline_fit(osv.osv):
     _inherit = 'account.move.line'
     _columns = {'complement_line_ids': fields.one2many('eaccount.complements', 'move_line_id', 'Complements')}
 
+    def unlink(self, cr, uid, ids, context=None, check=True):
+        if context is None:
+            context = {}
+        compl_obj = self.pool.get('eaccount.complements')
+        for move_line in self.browse(cr, uid, ids, context=context):
+            compl_obj.unlink(cr, uid, [compl_line.id for compl_line in move_line.complement_line_ids])
+        result = super(account_moveline_fit, self).unlink(cr, uid, ids, context=context, check=check)
+        return result
+    
+    
     def edit_eaccount_info(self, cr, uid, ids, context):
         line = self.browse(cr, uid, ids)[0] if len(ids) else self.browse(cr, uid, ids)
         context['c_amount'] = line.credit or line.debit

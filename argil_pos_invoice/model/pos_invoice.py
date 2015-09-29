@@ -64,6 +64,7 @@ class pos_order(osv.osv):
     
     def action_invoice2(self, cr, uid, order, journal_id, context=None):
         inv_ref = self.pool.get('account.invoice')
+        acc_tax_obj = self.pool.get('account.tax')
         inv_line_ref = self.pool.get('account.invoice.line')
         product_obj = self.pool.get('product.product')
         inv_ids = []
@@ -110,7 +111,10 @@ class pos_order(osv.osv):
                 inv_line['account_analytic_id'] = \
                     self._prepare_analytic_account(cr, uid, line,
                                                    context=context)
-            inv_line['price_unit'] = line.price_unit
+            xval = 0.0
+            for tax in acc_tax_obj.browse(cr, uid, inv_line['invoice_line_tax_id']):
+                xval += (tax.price_include and tax.amount or 0.0)
+            inv_line['price_unit'] = line.price_unit * (1.0 + xval),
             inv_line['discount'] = line.discount
             inv_line['name'] = inv_name
             inv_line['invoice_line_tax_id'] = [(6, 0, inv_line['invoice_line_tax_id'])]
@@ -124,6 +128,7 @@ class pos_order(osv.osv):
     def action_invoice3(self, cr, uid, ids, date, journal_id=False, context=None):
         if context is None: context = {}        
         inv_ref = self.pool.get('account.invoice')
+        acc_tax_obj = self.pool.get('account.tax')
         inv_line_ref = self.pool.get('account.invoice.line')
         product_obj = self.pool.get('product.product')
         bsl_obj = self.pool.get('account.bank.statement.line')
@@ -147,11 +152,15 @@ class pos_order(osv.osv):
                 po_ids.append(order.id)
                 for line in order.lines:
                     ## Agrupamos las líneas según el impuesto
+                    xval = 0.0
+                    for tax in acc_tax_obj.browse(cr, uid, [x.id for x in line.product_id.taxes_id]):
+                        xval += (tax.price_include and tax.amount or 0.0)
+
                     tax_names = ", ".join([x.name for x in line.product_id.taxes_id])
                     val={
                         'tax_names'           : ", ".join([x.name for x in line.product_id.taxes_id]),
                         'taxes_id'            : ",".join([str(x.id) for x in line.product_id.taxes_id]),
-                        'price_subtotal'      : line.price_subtotal,
+                        'price_subtotal'      : line.price_subtotal * (1.0 + xval),
                         'price_subtotal_incl' : line.price_subtotal_incl,
                         }
                     key = (val['tax_names'],val['taxes_id'])
@@ -197,7 +206,7 @@ class pos_order(osv.osv):
                     'invoice_id': inv_id,
                     'product_id': False,
                     'name'      : ('VENTA AL PUBLICO EN GENERAL DEL DIA %s DEL ALMACEN %s' % (date[8:10]+'/'+date[5:7]+'/'+date[0:4], order.location_id.name)) +
-                                   (line['tax_names'] and ('CON %s' % line['tax_names']) or ''),
+                                   (line['tax_names'] and (' CON %s' % line['tax_names']) or ''),
                     'quantity'  : 1,
                     'account_id': order.lines[0].product_id.property_account_income.id or order.lines[0].product_id.categ_id.property_account_income_categ.id,
                     'uos_id'    : uom_id[0],

@@ -209,7 +209,15 @@ DECLARE
 		order by order_code;
 	_result4 record;
 
-	_period_name varchar(20);
+	_cursor5 CURSOR FOR 
+		SELECT 	id, account_id, account_code, account_name
+		from balanza_mensual
+		where account_type in ('view','consolidation') and partner_id is null
+		order by account_level desc;
+	_result5 record;
+
+
+    _period_name varchar(20);
 	_period_flag_00 boolean;
 	_period_month integer;
 	_period_fiscalyear varchar(20);
@@ -302,6 +310,20 @@ BEGIN
 		
 	END LOOP;
 
+    --- Copiamos la tabla account_move_line con los movimientos del periodo de la balanza.
+    drop table if exists argil_account_move_line;
+    
+    create table argil_account_move_line as
+    select id, account_id, period_id, journal_id, state, partner_id, debit, credit
+    from account_move_line
+    where period_id in (select id from period_ids union all select pp2.id from period_ids2 pp2);
+    
+    --create index argil_account_move_line_index1 on argil_account_move_line(account_id, period_id, state);
+    create index argil_account_move_line_index2 on argil_account_move_line(account_id, period_id, state, partner_id);
+    ---
+
+
+
     -- Obtenemos los saldos de las cuentas
 	FOR _record3 IN _cursor3
 	LOOP
@@ -312,11 +334,11 @@ BEGIN
 		    initial_balance =
 			(
 			select COALESCE(sum(line.debit), 0.00) -  COALESCE(sum(line.credit), 0.00)
-			from account_move_line line
+			from argil_account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and 
 				(CASE WHEN _period_month = 1 and not _period_flag_00 THEN journal.type <> 'situation' ELSE 1=1 END)
 			where line.state='valid' 
-			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
+			and line.account_id = _record3.id -- in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
 			and line.period_id in (select pp2.id from period_ids2 pp2)
 			                    --(select xperiodo.id from account_period xperiodo 
 			                    --where xperiodo.fiscalyear_id in (select id from account_fiscalyear where name = _period_fiscalyear)
@@ -325,26 +347,26 @@ BEGIN
 			)::float,
 			
 		debit = (select COALESCE(sum(line.debit), 0.00) 
-			from account_move_line line
+			from argil_account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			where line.state='valid' 
-			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
+			and line.account_id = _record3.id -- in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
 			and line.period_id in (select id from period_ids) 
                                 --(select id from account_period where name = _period_name))
                                 )::float,
 		credit = (select COALESCE(sum(line.credit), 0.00) 
-			from account_move_line line
+			from argil_account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			where line.state='valid' 
-			and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
+			and line.account_id = _record3.id -- in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
 			and line.period_id in (select id from period_ids)
                                 --(select id from account_period where name = _period_name)
                                 )::float,
         period_id = (select distinct line.period_id
-                from account_move_line line
+                from argil_account_move_line line
 				inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 			     where line.state='valid' 
-			     and line.account_id in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
+			     and line.account_id = _record3.id -- in (select f_account_child_ids(_record3.id) union all select f_account_child_consol_ids(_record3.id))
 			     and line.period_id in (select id from period_ids)
                                      --(select id from account_period where name = _period_name)
                  limit 1)
@@ -379,7 +401,7 @@ BEGIN
 			    --initial_balance =
 				(
 				select COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00)
-				from account_move_line xline
+				from argil_account_move_line xline
 					inner join account_journal xjournal on xline.journal_id=xjournal.id and 
 					(CASE WHEN _period_month = 1 and not _period_flag_00 THEN xjournal.type <> 'situation' ELSE 1=1 END)
 				where xline.state='valid' 
@@ -394,7 +416,7 @@ BEGIN
 				
 				COALESCE(sum(line.debit), 0.00)::float,
 				COALESCE(sum(line.credit), 0.00)::float
-				from account_move_line line
+				from argil_account_move_line line
 					inner join account_journal journal on line.journal_id=journal.id and  journal.type <> 'situation'
 				where line.state='valid' 
 				and line.account_id = _record4.id
@@ -420,14 +442,14 @@ BEGIN
 			_record4.account_sign, _record4.partner_breakdown, _record4.period_name, _record4.company_name, 0.0, 0.0,
 			
 			xline.partner_id, (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00))::float
-			from account_move_line xline
+			from argil_account_move_line xline
 				inner join account_journal xjournal on xline.journal_id=xjournal.id and 
 				(CASE WHEN _period_month = 1 and not _period_flag_00 THEN xjournal.type <> 'situation' ELSE 1=1 END)
 			where xline.state='valid' 
 			and xline.account_id = _record4.id
 			and xline.partner_id not in 
 				(select distinct line.partner_id
-				from account_move_line line
+				from argil_account_move_line line
 					inner join account_journal journal on line.journal_id=journal.id and journal.type <> 'situation'
 				where line.state='valid' and line.partner_id is not null
 				and line.account_id = _record4.id
@@ -458,7 +480,7 @@ BEGIN
 			_record4.account_sign, _record4.partner_breakdown, _record4.period_name, _record4.company_name, 0.0, 0.0,
 			
 			xline.partner_id, (COALESCE(sum(xline.debit), 0.00) -  COALESCE(sum(xline.credit), 0.00))::float
-			from account_move_line xline
+			from argil_account_move_line xline
 				inner join account_journal xjournal on xline.journal_id=xjournal.id and 
 				(CASE WHEN _period_month = 1 and not _period_flag_00 THEN xjournal.type <> 'situation' ELSE 1=1 END)
 			where xline.state='valid' 

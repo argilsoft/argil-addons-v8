@@ -87,11 +87,18 @@ class invoice_fit(osv.osv):
                 if len(rate_lines) and rate_lines[0].rate:
                     curr_rate = 1 / rate_lines[0].rate
                 else:
-                    inv.currency_id.rate_ids = sorted(inv.currency_id.rate_ids, key=lambda k: k.name, reverse=True)
-                    for ln in inv.currency_id.rate_ids:
-                        if ln.name < inv.date_invoice and ln.rate:
-                            curr_rate = 1 / ln.rate
+                    rate_lines = [{'name':val.name,'rate':val.rate} for val in inv.currency_id.rate_ids]
+                    #rate_lines = sorted(rate_lines, reverse=True)
+                    for ln in rate_lines:
+                        if ln['name'] < inv.date_invoice and ln['rate']:
+                            curr_rate = 1 / ln['rate']
                             break
+                    
+                    #inv.currency_id.rate_ids = sorted(inv.currency_id.rate_ids, key=lambda k: k.name, reverse=True)
+                    #for ln in inv.currency_id.rate_ids:
+                    #    if ln.name < inv.date_invoice and ln.rate:
+                    #        curr_rate = 1 / ln.rate
+                    #        break
 
                 cmpl_vals['exchange_rate'] = str(curr_rate) if curr_rate else False
                 cmplsObj.create(cr, uid, cmpl_vals)

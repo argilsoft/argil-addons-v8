@@ -4,7 +4,7 @@
         <record model="ir.ui.view" id="res_partner_advance_payment_view">
                 <field name="name">res.partner.advance.payment.view</field>
                 <field name="model">res.partner</field>
-                <field name="inherit_id" ref="base.view_partner_form"/>
+                <field name="inherit_id" ref="account.view_partner_property_form"/>
                 <field name="arch" type="xml">
                     <xpath expr="//field[@name='property_account_payable']" position="after" >
                         <field name="property_account_supplier_advance"/>

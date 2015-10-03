@@ -498,6 +498,22 @@ BEGIN
 		END LOOP;
 
 	END IF;
+    
+    
+    FOR _record5 IN _cursor5
+	LOOP
+		--RAISE NOTICE 'Account: % => %', _record5.account_code,_record5.account_name;
+		
+		update balanza_mensual
+		set 
+			initial_balance=(select COALESCE(sum(bm.initial_balance), 0.00) from balanza_mensual bm where bm.account_id in (select f_account_child_ids(_record5.account_id) union all select f_account_child_consol_ids(_record5.account_id)) and bm.account_type not in ('view','consolidation')), -- bm.parent_id = _record5.account_id),
+			debit=(select COALESCE(sum(bm.debit), 0.00) from balanza_mensual bm where bm.account_id in (select f_account_child_ids(_record5.account_id) union all select f_account_child_consol_ids(_record5.account_id)) and bm.account_type not in ('view','consolidation')),
+			credit=(select COALESCE(sum(bm.credit), 0.00) from balanza_mensual bm where bm.account_id in (select f_account_child_ids(_record5.account_id) union all select f_account_child_consol_ids(_record5.account_id)) and bm.account_type not in ('view','consolidation'))
+		where balanza_mensual.id=_record5.id;
+
+        END LOOP;
+
+    
 	"""
 
             sql4 = """

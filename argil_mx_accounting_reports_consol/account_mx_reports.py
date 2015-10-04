@@ -526,18 +526,22 @@ BEGIN
 		ending_balance = (initial_balance + debit - credit) * account_sign,
 		moves = not (initial_balance = 0.0 and debit = 0.0 and credit = 0.0);
 
-		
+    delete from account_monthly_balance_header where create_uid = x_uid;
+    insert into account_monthly_balance_header 
+    (id, create_uid,  create_date, write_date, write_uid, period_name, date)
+    values
+    (x_uid, x_uid, LOCALTIMESTAMP, LOCALTIMESTAMP, x_uid, _period_name, LOCALTIMESTAMP);		
 	
 	
 	delete from account_monthly_balance where create_uid = x_uid;
 	
 	insert into account_monthly_balance
-	(create_uid, create_date, write_date, write_uid, company_name, period_name,
+	(create_uid, create_date, write_date, write_uid, company_name, period_name, header_id,
 	--fiscalyear_id, period_id, 
 	account_id, account_code, account_name, account_level, account_type, account_internal_type, account_nature, account_sign,
 	initial_balance, debit, credit, balance, ending_balance, moves, partner_id, partner_name, order_code, period_id)
 	select 
-		x_uid as create_uid, LOCALTIMESTAMP as create_date, LOCALTIMESTAMP as write_date, x_uid as write_uid, company_name, period_name,
+		x_uid as create_uid, LOCALTIMESTAMP as create_date, LOCALTIMESTAMP as write_date, x_uid as write_uid, company_name, period_name, x_uid,
 		account_id, account_code, account_name, account_level, account_type, account_user_type, account_nature, account_sign,
 		initial_balance, debit, credit, balance, ending_balance,
 		moves, partner.id, partner.name, order_code, period_id

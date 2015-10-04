@@ -340,10 +340,13 @@ class files_generator_wizard(osv.osv_memory):
                 self._verify_report_existance(cr, uid, 'jasper.ceBalanzaComprobacion')
             if balance_ids is None:
                 trialWizardObj = self.pool.get('account.monthly_balance_wizard')
-                trial_balance_id = trialWizardObj.create(cr, uid, {'chart_account_id': form.accounts_chart.id,
-                 'company_id': user.company_id.id,
-                 'period_id': period_id.id,
-                 'partner_breakdown': False})
+                trial_balance_id = trialWizardObj.create(cr, uid, 
+                                                         {'chart_account_id': form.accounts_chart.id,
+                                                         'company_id'       : user.company_id.id,
+                                                         'period_id'        : period_id.id,
+                                                         'partner_breakdown': False,
+                                                         'output'           : 'list_view',
+                                                                  })
                 balance_ids = eval(trialWizardObj.get_info(cr, uid, [trial_balance_id])['domain'][1:-1])[2]
             balanceRecords = self.pool.get('account.monthly_balance').browse(cr, uid, balance_ids)
             if form.format == 'pdf':

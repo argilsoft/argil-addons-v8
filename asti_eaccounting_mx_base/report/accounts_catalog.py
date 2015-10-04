@@ -28,7 +28,10 @@ from openerp.report import report_sxw
 class accounts_catalog_rml_parser(report_sxw.rml_parse):
 
     def __init__(self, cr, uid, name, context = None):
+        if context is None:
+            context = {}
         super(accounts_catalog_rml_parser, self).__init__(cr, uid, name, context=context)
+        print "context: ", context
         self.localcontext.update({'rfc': context['rfc'],
          'period': context['period'],
          'print_date': time.strftime('%d/%M/%Y'),

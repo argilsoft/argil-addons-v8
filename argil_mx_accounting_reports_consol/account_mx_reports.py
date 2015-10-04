@@ -314,9 +314,10 @@ BEGIN
     drop table if exists argil_account_move_line;
     
     create table argil_account_move_line as
-    select id, account_id, period_id, journal_id, state, partner_id, debit, credit
-    from account_move_line
-    where period_id in (select id from period_ids union all select pp2.id from period_ids2 pp2);
+    select ml.id, ml.account_id, ml.period_id, ml.journal_id, ml.state, ml.partner_id, ml.debit, ml.credit
+    from account_move_line ml
+        inner join account_move am on am.id=ml.move_id and am.state='posted'
+    where ml.period_id in (select id from period_ids union all select pp2.id from period_ids2 pp2);
     
     --create index argil_account_move_line_index1 on argil_account_move_line(account_id, period_id, state);
     create index argil_account_move_line_index2 on argil_account_move_line(account_id, period_id, state, partner_id);

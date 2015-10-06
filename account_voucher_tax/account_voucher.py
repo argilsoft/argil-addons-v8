@@ -83,6 +83,9 @@ class account_voucher(osv.Model):
                         # Inicio Modificacion
                         src_account_id = inv_line_tax.tax_id.account_collected_id.id
                         dest_account_id = inv_line_tax.tax_id.account_collected_voucher_id.id or inv_line_tax.tax_id.account_paid_voucher_id.id
+                        if invoice.type=='out_invoice':
+                            src_account_id, dest_account_id = dest_account_id, src_account_id
+
                         if not (src_account_id and dest_account_id):
                             raise osv.except_osv('Advertencia !',"El impuesto %s no se encuentra correctamente configurado, favor de revisar." % (inv_line_tax.tax_id.name))
                         voucher_curr = current_currency

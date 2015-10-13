@@ -55,14 +55,15 @@ class account_move_fit(osv.osv):
         if len(all_periods) > 1:
             raise osv.except_osv(u'Se ha encontrado m\xe1s de un per\xedodo fiscal', u'Todas las p\xf3lizas seleccionadas deben pertenecer al mismo per\xedodo fiscal.')
         period_id = all_periods.pop()
-        context['period_id'] = period_id.id
+        ctx = context.copy()
+        ctx['period_id'] = period_id.id
         return {'type': 'ir.actions.act_window',
          'res_model': 'vouchers.xml.creator',
          'view_mode': 'form',
          'view_type': 'form',
          'name': 'Par\xc3\xa1metros del XML',
          'target': 'new',
-         'context': context}
+         'context': ctx}
 
 
 

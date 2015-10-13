@@ -282,8 +282,9 @@ class account_moveline_fit(osv.osv):
     
     def edit_eaccount_info(self, cr, uid, ids, context):
         line = self.browse(cr, uid, ids)[0] if len(ids) else self.browse(cr, uid, ids)
-        context['c_amount'] = line.credit or line.debit
-        context['c_date'] = line.move_id.date
+        ctx = context.copy()
+        ctx['c_amount'] = line.credit or line.debit
+        ctx['c_date'] = line.move_id.date
         new_wizard = self.pool.get('moveline.info.manager').create(cr, uid, {'line_id': ids[0]})
         return {'name': u'Informaci\xf3n para contabilidad electr\xf3nica',
          'type': 'ir.actions.act_window',
@@ -292,7 +293,7 @@ class account_moveline_fit(osv.osv):
          'view_mode': 'form',
          'view_type': 'form',
          'target': 'new',
-         'context': context}
+         'context': ctx}
 
 
 

@@ -94,11 +94,20 @@ class account_voucher(osv.Model):
                         mi_invoice = inv_line_tax.amount * factor
                         mib_invoice = inv_line_tax.base_amount * factor
                         ctx['date'] = invoice.date_invoice 
-                        mi_company_curr_orig = currency_obj.compute(cr, uid,
+                        xmi_company_curr_orig = 0
+                        for move_line in invoice.move_id.line_id:
+                            if move_line.account_id.id == inv_line_tax.tax_id.account_collected_id.id:
+                                xmi_company_curr_orig = move_line.debit + move_line.credit                                
+                        if xmi_company_curr_orig:
+                            mi_company_curr_orig = xmi_company_curr_orig * factor
+                            mib_company_curr_orig = mi_company_curr_orig / inv_line_tax.tax_id.amount
+                        else:
+
+                            mi_company_curr_orig = currency_obj.compute(cr, uid,
                                     invoice.currency_id.id, company_curr,
                                     float('%.*f' % (2,mi_invoice)),
                                     round=False, context=ctx)
-                        mib_company_curr_orig = currency_obj.compute(cr, uid,
+                            mib_company_curr_orig = currency_obj.compute(cr, uid,
                                     invoice.currency_id.id, company_curr,
                                     float('%.*f' % (2,mib_invoice)),
                                     round=False, context=ctx)
@@ -189,7 +198,7 @@ class account_voucher(osv.Model):
                                 'account_id': dest_account_id,
                                 'currency_id': (company_currency != current_currency) and current_currency or False,
                                 'amount_currency' : (company_currency != current_currency) and mi_voucher_amount_currency3 or False,
-                                'amount_base' : abs(mi_voucher_amount_currency2) / inv_line_tax.tax_id.amount,
+                                'amount_base' : inv_line_tax.tax_id.amount and (abs(mi_voucher_amount_currency2) / inv_line_tax.tax_id.amount) or mib_company_curr_orig,
                                 })
                             
                             
@@ -230,7 +239,7 @@ class account_voucher(osv.Model):
                         lines = line3 and [line1,line2,line3] or [line1,line2]
                         
                         #for line in lines:
-                        #    print "line: %s - %s - %s - %s - %s" % (line['currency_id'], line['debit'], line['credit'], line['amount_currency'], line['name'])
+                        #    print "line: %s - %s - %s - %s - %s - %s - %s" % (line['name'],line['currency_id'], line['debit'], line['credit'], line['amount_currency'], line['name'], line['amount_base'])
                             
                         #raise osv.except_osv('Pausa!',"Pausa")
                         for move_line_tax in lines:

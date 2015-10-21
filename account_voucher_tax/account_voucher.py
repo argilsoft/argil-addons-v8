@@ -85,19 +85,22 @@ class account_voucher(osv.Model):
                         dest_account_id = inv_line_tax.tax_id.account_collected_voucher_id.id or inv_line_tax.tax_id.account_paid_voucher_id.id
                         #if invoice.type=='out_invoice':
                         #    src_account_id, dest_account_id = dest_account_id, src_account_id
-
+                        #print "invoice.number: %s - %s" % (invoice.number, invoice.supplier_invoice_number)
                         if not (src_account_id and dest_account_id):
                             raise osv.except_osv('Advertencia !',"El impuesto %s no se encuentra correctamente configurado, favor de revisar." % (inv_line_tax.tax_id.name))
                         voucher_curr = current_currency
                         invoice_curr = invoice.currency_id.id
                         company_curr = company_currency
                         mi_invoice = inv_line_tax.amount * factor
+                        #print "mi_invoice: ", mi_invoice
                         mib_invoice = inv_line_tax.base_amount * factor
+                        #print "mib_invoice: ", mib_invoice
                         ctx['date'] = invoice.date_invoice 
                         xmi_company_curr_orig = 0
                         for move_line in invoice.move_id.line_id:
                             if move_line.account_id.id == inv_line_tax.tax_id.account_collected_id.id:
-                                xmi_company_curr_orig = move_line.debit + move_line.credit                                
+                                xmi_company_curr_orig = move_line.debit + move_line.credit
+                        #print "xmi_company_curr_orig: ", xmi_company_curr_orig
                         if xmi_company_curr_orig:
                             mi_company_curr_orig = xmi_company_curr_orig * factor
                             mib_company_curr_orig = mi_company_curr_orig / inv_line_tax.tax_id.amount
@@ -107,10 +110,15 @@ class account_voucher(osv.Model):
                                     invoice.currency_id.id, company_curr,
                                     float('%.*f' % (2,mi_invoice)),
                                     round=False, context=ctx)
-                            mib_company_curr_orig = currency_obj.compute(cr, uid,
-                                    invoice.currency_id.id, company_curr,
-                                    float('%.*f' % (2,mib_invoice)),
-                                    round=False, context=ctx)
+                            #print "invoice.currency_id.id: ", invoice.currency_id.id
+                            #print "company_curr: ", company_curr
+                            #print "mib_invoice: ", mib_invoice
+                            mib_company_curr_orig = mib_invoice
+                                    #currency_obj.compute(cr, uid,
+                                    #invoice.currency_id.id, company_curr,
+                                    #float('%.*f' % (2,mib_invoice)),
+                                    #round=False, context=ctx)
+                        #print "mib_company_curr_orig: ", mib_company_curr_orig
                         mi_voucher_curr_orig = currency_obj.compute(cr, uid,
                                     invoice.currency_id.id, voucher_curr,
                                     float('%.*f' % (2,mi_invoice)),

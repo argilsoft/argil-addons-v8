@@ -114,7 +114,7 @@ class pos_order(osv.osv):
             xval = 0.0
             for tax in acc_tax_obj.browse(cr, uid, inv_line['invoice_line_tax_id']):
                 xval += (tax.price_include and tax.amount or 0.0)
-            inv_line['price_unit'] = line.price_unit * (1.0 + xval),
+            inv_line['price_unit'] = line.price_unit * (1.0 + xval)
             inv_line['discount'] = line.discount
             inv_line['name'] = inv_name
             inv_line['invoice_line_tax_id'] = [(6, 0, inv_line['invoice_line_tax_id'])]

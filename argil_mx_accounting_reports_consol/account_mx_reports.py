@@ -670,8 +670,8 @@ class account_account_lines(osv.osv):
 
     _columns = {
         'header_id'         : fields.many2one('account.account_lines_header', 'Header', readonly=True, ondelete='cascade'),        
-        'name'              : fields.char('Concepto Partida', size=64, readonly=True),
-        'ref'               : fields.char('Referencia Partida', size=64, readonly=True),
+        'name'              : fields.char('Concepto Partida', size=256, readonly=True),
+        'ref'               : fields.char('Referencia Partida', size=256, readonly=True),
         'move_id'           : fields.many2one('account.move', 'Póliza', readonly=True),
         'user_id'           : fields.many2one('res.users', 'Usuario', readonly=True),
         'journal_id'        : fields.many2one('account.journal', 'Diario', readonly=True),
@@ -681,16 +681,16 @@ class account_account_lines(osv.osv):
         'account_type_id'   : fields.many2one('account.account.type', 'Tipo Cuenta', readonly=True),
 
         'move_date'         : fields.date('Fecha Póliza', readonly=True),
-        'move_name'         : fields.char('Póliza No.', size=120, readonly=True),
-        'move_ref'          : fields.char('Referencia Póliza', size=120, readonly=True),
-        'period_name'       : fields.char('xPeriodo Mensual', size=120, readonly=True),
-        'fiscalyear_name'   : fields.char('xPeriodo Anual', size=120, readonly=True),
-        'account_code'      : fields.char('Codigo Cuenta', size=60, readonly=True),
-        'account_name'      : fields.char('Descripcion Cuenta', size=120, readonly=True),
+        'move_name'         : fields.char('Póliza No.', size=256, readonly=True),
+        'move_ref'          : fields.char('Referencia Póliza', size=256, readonly=True),
+        'period_name'       : fields.char('xPeriodo Mensual', size=256, readonly=True),
+        'fiscalyear_name'   : fields.char('xPeriodo Anual', size=256, readonly=True),
+        'account_code'      : fields.char('Codigo Cuenta', size=256, readonly=True),
+        'account_name'      : fields.char('Descripcion Cuenta', size=256, readonly=True),
         'account_level'     : fields.integer('Nivel', readonly=True),
-        'account_type'      : fields.char('xTipo Cuenta', size=60, readonly=True),
+        'account_type'      : fields.char('xTipo Cuenta', size=256, readonly=True),
         'account_sign'      : fields.integer('Signo', readonly=True),
-        'journal_name'      : fields.char('xDiario', size=60, readonly=True),
+        'journal_name'      : fields.char('xDiario', size=256, readonly=True),
         'initial_balance'   : fields.float('Saldo Inicial', readonly=True, digits_compute=dp.get_precision('Account')),
         'debit'             : fields.float('Cargos', readonly=True, digits_compute=dp.get_precision('Account')),
         'credit'            : fields.float('Abonos', readonly=True, digits_compute=dp.get_precision('Account')),
@@ -770,8 +770,8 @@ class account_account_lines_wizard(osv.osv_memory):
             create_date date,
             write_date date,
             write_uid integer,
-            name varchar(64),
-            ref varchar(64),
+            name varchar(256),
+            ref varchar(256),
             move_id integer,
             user_id integer,
             journal_id integer,
@@ -780,16 +780,16 @@ class account_account_lines_wizard(osv.osv_memory):
             account_id integer,
             account_type_id integer,
             move_date date,
-            move_name varchar(120),
-            move_ref varchar(120),
-            period_name  varchar(120),
+            move_name varchar(256),
+            move_ref varchar(256),
+            period_name  varchar(256),
             --fiscalyear_name varchar(120),
-            account_code varchar(60),
-            account_name varchar(120),
+            account_code varchar(256),
+            account_name varchar(256),
             account_level integer,
-            account_type varchar(60),
+            account_type varchar(256),
             account_sign integer,
-            journal_name varchar(60),
+            journal_name varchar(256),
             initial_balance float,
             debit float, 
             credit float,
@@ -1030,6 +1030,7 @@ class account_account_lines_wizard(osv.osv_memory):
         #print "sql3: \n", sql3
 
             sql = sql1 + sql2 + sql3
+            #print "sql: ", sql
             cr.execute(sql)
             if params.output == 'list_view':
                 value = {

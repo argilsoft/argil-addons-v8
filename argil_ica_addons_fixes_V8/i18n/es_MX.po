@@ -1,0 +1,96 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* argil_ica_addons_fixes_V8
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-17 23:11+0000\n"
+"PO-Revision-Date: 2015-11-17 17:18-0600\n"
+"Last-Translator: Israel Cruz Argil <israel.cruz@argil.mx>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: es_MX\n"
+"X-Generator: Poedit 1.8.6\n"
+
+#. module: argil_ica_addons_fixes_V8
+#: field:account.invoice.report,price_subtotal_inv_curr:0
+msgid "Base FC"
+msgstr "Total Base ME"
+
+#. module: argil_ica_addons_fixes_V8
+#: view:account.invoice.report:argil_ica_addons_fixes_V8.view_account_invoice_report_search_invoice_number
+#: model:ir.model,name:argil_ica_addons_fixes_V8.model_res_currency
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: argil_ica_addons_fixes_V8
+#: model:ir.model,name:argil_ica_addons_fixes_V8.model_res_currency_rate
+msgid "Currency Rate"
+msgstr "Tipo de Cambio"
+
+#. module: argil_ica_addons_fixes_V8
+#: field:res.currency,rate_silent2:0
+msgid "Current Rate"
+msgstr "TC Actual"
+
+#. module: argil_ica_addons_fixes_V8
+#: code:addons/argil_ica_addons_fixes_V8/res_currency.py:52
+#: code:addons/argil_ica_addons_fixes_V8/res_currency.py:87
+#: code:addons/argil_ica_addons_fixes_V8/res_currency.py:100
+#, python-format
+msgid "Error!"
+msgstr "Error!"
+
+#. module: argil_ica_addons_fixes_V8
+#: help:res.currency.rate,rate2:0
+msgid "If you leave blank field Rate, then it will be overwritten by this field as 1 / Rate2"
+msgstr "Si deja vacío el campo Tipo de Cambio, entonces será sobreescrito por este campo como 1/ Tipo Cambio 2"
+
+#. module: argil_ica_addons_fixes_V8
+#: view:account.invoice.report:argil_ica_addons_fixes_V8.view_account_invoice_report_search_invoice_number
+#: field:account.invoice.report,invoice_number:0
+msgid "Invoice Number"
+msgstr "Documento"
+
+#. module: argil_ica_addons_fixes_V8
+#: model:ir.model,name:argil_ica_addons_fixes_V8.model_account_invoice_report
+msgid "Invoices Statistics"
+msgstr "Estadísticas de facturas"
+
+#. module: argil_ica_addons_fixes_V8
+#: code:addons/argil_ica_addons_fixes_V8/res_currency.py:52
+#: code:addons/argil_ica_addons_fixes_V8/res_currency.py:87
+#, python-format
+msgid "No currency rate associated for currency '%s' for the given period"
+msgstr "No hay TC asociado para la moneda ‘%s’ para el periodo indicado"
+
+#. module: argil_ica_addons_fixes_V8
+#: code:addons/argil_ica_addons_fixes_V8/res_currency.py:100
+#, python-format
+msgid "No currency rate given"
+msgstr "No se especificó Tipo de Cambio"
+
+#. module: argil_ica_addons_fixes_V8
+#: field:account.invoice.report,currency_rate2:0
+msgid "Rate"
+msgstr "TC (1/TC)"
+
+#. module: argil_ica_addons_fixes_V8
+#: field:res.currency.rate,rate2:0
+msgid "Rate2"
+msgstr "TC"
+
+#. module: argil_ica_addons_fixes_V8
+#: field:account.invoice.report,residual2:0
+msgid "Residual FC"
+msgstr "Residual M.E."
+
+#. module: argil_ica_addons_fixes_V8
+#: help:res.currency,rate_silent2:0
+msgid "The rate of the currency to the currency of rate 1"
+msgstr "Tipo de Cambio de la moneda para el Cambio 1"

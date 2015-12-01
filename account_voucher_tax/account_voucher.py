@@ -78,7 +78,7 @@ class account_voucher(osv.Model):
                 invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)                
                 for invoice in invoice_obj.browse(cr, uid, invoice_ids, context=context):
                     for inv_line_tax in invoice.tax_line:
-                        if not inv_line_tax.tax_id.tax_voucher_ok or not inv_line_tax.tax_id.tax_category_id.name in ('IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
+                        if not inv_line_tax.tax_id.tax_voucher_ok: # or not inv_line_tax.tax_id.tax_category_id.name in ('IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
                             continue
                         # Inicio Modificacion
                         src_account_id = inv_line_tax.tax_id.account_collected_id.id

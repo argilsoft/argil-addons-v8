@@ -24,8 +24,9 @@ from openerp.osv import fields,osv
 class account_invoice_report(osv.osv):
     _inherit = "account.invoice.report"
     
-    _columns = {    
-        'currency_rate2'            : fields.float('Rate MXN', readonly=True, digits_compute=(12,4)),
+    _columns = {
+        'currency_rate'             : fields.float('Currency Rate', readonly=True, group_operator = 'avg'),
+        'currency_rate2'            : fields.float('Rate MXN', readonly=True, digits_compute=(12,4), group_operator = 'avg'),
         'price_subtotal_inv_curr'   : fields.float('Base FC', readonly=True),
         'invoice_number'            : fields.char('Invoice Number', readonly=True),
         'residual2'                 : fields.float('Residual FC', readonly=True),

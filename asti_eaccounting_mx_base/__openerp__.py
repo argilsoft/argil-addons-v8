@@ -47,8 +47,7 @@
     'license' : 'GPL-3',
     'category' : 'Accounting',
     'depends' : ['base', 'account', 'account_cancel', 'argil_mx_accounting_reports_consol', 'l10n_mx_facturae_pac_sf'],
-    'init_xml' : [],
-    'update_xml' : ['eaccount_sat_code_view.xml',
+    'data' : ['eaccount_sat_code_view.xml',
                     'eaccount_journal_type_view.xml',
                     'eaccount_bank_view.xml',
                     'account_fit_view.xml',
@@ -74,7 +73,7 @@
                     'voucher_fit_view.xml',
                     'menu.xml'],
     'demo_xml' : [],
-    'installable' : 'True',
+    'installable' : True,
     'auto_install' : False
 }
 # Revision: 2.9

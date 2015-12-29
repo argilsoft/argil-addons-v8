@@ -33,8 +33,7 @@ Account Asset Amortization Re-factory
 HT - Lineal Account Asset Amortization
 """,
     "demo_xml" : [],
-    "init_xml" : [],
-    "update_xml" : [],
+    "data" : [],
     "active": False,
     'application': False,
     "installable": True

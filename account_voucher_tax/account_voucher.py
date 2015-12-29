@@ -100,7 +100,7 @@ class account_voucher(osv.Model):
                         for move_line in invoice.move_id.line_id:
                             if move_line.account_id.id == inv_line_tax.tax_id.account_collected_id.id:
                                 xmi_company_curr_orig = move_line.debit + move_line.credit
-                                mib_company_curr_orig = move_line.base_amount
+                                mib_company_curr_orig = move_line.amount_base
                         #print "xmi_company_curr_orig: ", xmi_company_curr_orig
                         if xmi_company_curr_orig:
                             mi_company_curr_orig = xmi_company_curr_orig * factor

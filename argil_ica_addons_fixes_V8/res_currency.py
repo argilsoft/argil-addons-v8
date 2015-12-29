@@ -92,13 +92,13 @@ class res_currency_rate(osv.osv):
     
     _columns = {
         'rate': fields.float('Rate', digits=(18, 12), help='The rate of the currency to the currency of rate 1'),
-        'rate2': fields.float('Rate2', digits=(12, 6), help='If you leave blank field Rate, then it will be overwritten by this field as 1 / Rate2'),
+        'rate2': fields.float('Rate2', digits=(12, 6), required=False, help='If you leave blank field Rate, then it will be overwritten by this field as 1 / Rate2'),
     }
     
     def create(self, cr, uid, vals, context=None):
-        if not vals['rate2'] and not vals['rate']:
+        if 'rate2' in vals and not vals['rate2'] and not vals['rate']:
             raise osv.except_osv(_('Error!'),_("No currency rate given"))
-        if vals['rate2']:
+        if 'rate2' in vals and vals['rate2']:
             vals.update({'rate': 1.0  / vals['rate2']})
         elif vals['rate']:
             vals.update({'rate2': 1.0  / vals['rate']})

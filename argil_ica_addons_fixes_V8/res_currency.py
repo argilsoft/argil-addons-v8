@@ -45,11 +45,11 @@ class res_currency(osv.osv):
                        (id, date))
             if cr.rowcount:
                 res[id] = cr.fetchone()[0]
-            elif not raise_on_no_rate:
-                res[id] = 0
             else:
-                currency = self.browse(cr, uid, id, context=context)
-                raise osv.except_osv(_('Error!'),_("No currency rate associated for currency '%s' for the given period" % (currency.name)))
+                res[id] = 0
+            #else:
+            #    currency = self.browse(cr, uid, id, context=context)
+            #    raise osv.except_osv(_('Error!'),_("No currency rate associated for currency '%s' for the given period" % (currency.name)))
         return res
     
     

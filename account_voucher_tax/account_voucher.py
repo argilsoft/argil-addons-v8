@@ -154,6 +154,12 @@ class account_voucher(osv.Model):
                         acc_a = inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False
                         date = voucher.date
                         # Partida correspondiente al Monto Original del Impuesto en la factura
+                        amount_currency = False
+                        if mi_company_curr_orig and mi_company_curr_orig >= 0.0: # IVA de Compra y/o Retención de Venta - Crédito
+                            amount_currency = (company_currency != invoice.currency_id.id) and -abs(mi_invoice) or False
+                        elif mi_company_curr_orig and mi_company_curr_orig < 0.0: # IVA de Venta y/o Retención de Compra - Débito
+                            amount_currency = (company_currency != invoice.currency_id.id) and abs(mi_invoice) or False
+                            
                         line2 = {
                             'name': inv_line_tax.tax_id.name + ((_(" - Original Amount - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
                             'quantity': 1,
@@ -169,10 +175,10 @@ class account_voucher(osv.Model):
                             'analytic_account_id': acc_a,
                             'date': date,
                             'currency_id': (company_currency != invoice_curr) and invoice_curr or False,
-                            'amount_currency' : (company_currency != invoice.currency_id.id) and ((mi_invoice >= 0.0) and -mi_invoice or mi_invoice) or False,
+                            'amount_currency' : amount_currency,#(company_currency != invoice.currency_id.id) and ((mi_invoice >= 0.0) and -mi_invoice or mi_invoice) or False,
                             'amount_base' : mib_company_curr_orig,
                             'state' : 'draft',
-                        }
+                        } 
                         if invoice.type=='out_invoice':
                             line2.update({
                                         'debit' : line2['credit'],
@@ -194,11 +200,10 @@ class account_voucher(osv.Model):
                                 
                                 })                            
                             
-                            if company_currency != current_currency:
-                                line1.update({
-                                        'amount_currency' : -line2['amount_currency']
+                            line1.update({
+                                        'amount_currency' : line2['amount_currency'] and -line2['amount_currency'] or False
                                     })
-                                                                
+                                              
                         elif xparam == "1":                                                        
                             line1.update({
                                 'name': inv_line_tax.tax_id.name + ((_(" - Voucher Amount Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),    
@@ -248,7 +253,7 @@ class account_voucher(osv.Model):
                         lines = line3 and [line1,line2,line3] or [line1,line2]
                         
                         #for line in lines:
-                        #    print "line: %s - %s - %s - %s - %s - %s - %s" % (line['name'],line['currency_id'], line['debit'], line['credit'], line['amount_currency'], line['name'], line['amount_base'])
+                        #    print "line: %s - currency_id: %s - debit: %s - credit: %s - amount_currency: %s - amount_base: %s" % (line['name'],line['currency_id'], line['debit'], line['credit'], line['amount_currency'], line['amount_base'])
                             
                         #raise osv.except_osv('Pausa!',"Pausa")
                         for move_line_tax in lines:

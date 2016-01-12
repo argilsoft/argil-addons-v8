@@ -62,14 +62,15 @@ class account_move_line(osv.Model):
         for line in self.browse(cr, uid, ids, context=context):
             if line.tax_id_secondary and line.tax_id_secondary.type_tax_use == 'purchase':
                 cat_tax = line.tax_id_secondary.tax_category_id
-                if cat_tax and cat_tax.name in ('IVA', 'IVA-EXENTO') and line.amount_base <= 0 and\
+                if cat_tax and cat_tax.name in ('IVA', 'IVA-EXENTO','IVA-RET') and line.amount_base <= 0 and\
                         not line.not_move_diot:
                     raise osv.except_osv(_('Warning!'), _('The lines with tax of purchase, need '
                         'have a value in the amount base.'))
-                elif cat_tax and cat_tax.name == 'IVA-RET' and line.credit <= 0 and\
-                        not line.not_move_diot:
-                    raise osv.except_osv(_('Warning!'), _('The lines with tax of purchase, need '
-                        'have a value in the credit.'))
+                #elif cat_tax and cat_tax.name == 'IVA-RET' and line.credit <= 0 and\
+                #        not line.not_move_diot:
+                #    print "line: %s - %s - %s - %s - %s - %s" % (line.account_id.code, line.account_id.name, line.debit, line.credit, line.amount_base, line.tax_id_secondary.name)
+                #    raise osv.except_osv(_('Warning!'), _('The lines with tax of purchase, need '
+                #        'have a value in the credit.'))
         #print "res: ", res
         return res
 

@@ -155,17 +155,17 @@ class account_voucher(osv.Model):
                         date = voucher.date
                         # Partida correspondiente al Monto Original del Impuesto en la factura
                         amount_currency = False
-                        if mi_company_curr_orig and mi_company_curr_orig >= 0.0: # IVA de Compra y/o Retención de Venta - Crédito
+                        if mi_company_curr_orig and inv_line_tax.tax_id.amount >= 0: # IVA de Compra y/o Retención de Venta - Crédito
                             amount_currency = (company_currency != invoice.currency_id.id) and -abs(mi_invoice) or False
-                        elif mi_company_curr_orig and mi_company_curr_orig < 0.0: # IVA de Venta y/o Retención de Compra - Débito
+                        elif mi_company_curr_orig and inv_line_tax.tax_id.amount < 0: # IVA de Venta y/o Retención de Compra - Débito
                             amount_currency = (company_currency != invoice.currency_id.id) and abs(mi_invoice) or False
                             
                         line2 = {
                             'name': inv_line_tax.tax_id.name + ((_(" - Original Amount - Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),
                             'quantity': 1,
                             'partner_id': invoice.partner_id.id, 
-                            'debit': round((mi_company_curr_orig < 0.0 and -mi_company_curr_orig or 0.0), precision),
-                            'credit': round((mi_company_curr_orig >= 0.0 and mi_company_curr_orig or 0.0), precision),
+                            'debit': abs(round((mi_company_curr_orig * (inv_line_tax.tax_id.amount >= 0 and 1.0 or -1.0) < 0.0 and -mi_company_curr_orig or 0.0), precision)),
+                            'credit': abs(round((mi_company_curr_orig * (inv_line_tax.tax_id.amount >= 0 and 1.0 or -1.0) >= 0.0 and mi_company_curr_orig or 0.0), precision)),
                             'account_id': src_account_id, 
                             'journal_id': journal_id,
                             'period_id': period_id,
@@ -176,9 +176,11 @@ class account_voucher(osv.Model):
                             'date': date,
                             'currency_id': (company_currency != invoice_curr) and invoice_curr or False,
                             'amount_currency' : amount_currency,#(company_currency != invoice.currency_id.id) and ((mi_invoice >= 0.0) and -mi_invoice or mi_invoice) or False,
-                            'amount_base' : mib_company_curr_orig,
+                            'amount_base' : abs(mib_company_curr_orig),
                             'state' : 'draft',
                         } 
+                        
+                        
                         if invoice.type=='out_invoice':
                             line2.update({
                                         'debit' : line2['credit'],

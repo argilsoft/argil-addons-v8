@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <openerp>
-    <data>
+    <data noupdate="1">
 
 	<!-- Parameter:  1 =  -->
 	<record model="ir.config_parameter" id="tax_amount_according_to_currency_exchange_on_payment_date">

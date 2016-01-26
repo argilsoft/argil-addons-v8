@@ -29,6 +29,15 @@ from openerp.osv import osv, fields
 from openerp.addons.decimal_precision import decimal_precision as dp
 from openerp.tools.translate import _
 
+
+class account_move_line(osv.osv):
+    _name = "account.move.line"
+    _inherit = 'account.move.line'
+    _columns = {
+       'invoice_voucher_id': fields.many2one('account.invoice', 'Invoice Reference', ondelete='cascade', select=True),
+    }
+
+
 class account_voucher(osv.Model):
     _inherit = 'account.voucher'
 
@@ -189,7 +198,7 @@ class account_voucher(osv.Model):
                                 'debit':  ((mi_voucher_amount_currency2 >= 0 and invoice.type=='in_invoice') or (mi_voucher_amount_currency2 < 0 and invoice.type=='out_invoice')) and abs(mi_voucher_amount_currency2) or 0.0,
                                 'credit': ((mi_voucher_amount_currency2 >= 0 and invoice.type=='out_invoice') or (mi_voucher_amount_currency2 < 0 and invoice.type=='in_invoice')) and abs(mi_voucher_amount_currency2) or 0.0,
                                 'account_id': dest_account_id,
-                                'currency_id': (company_currency != current_currency) and current_currency or False,
+                                #'currency_id': (company_currency != current_currency) and current_currency or False,
                                 'amount_currency' : line2['amount_currency'] and -line2['amount_currency'] or False,
                                 'amount_base' : abs(mi_voucher_amount_currency2 / inv_line_tax.tax_id.amount),
                                 })
@@ -219,7 +228,8 @@ class account_voucher(osv.Model):
                         lines = line3 and [line1,line2,line3] or [line1,line2]
                         #debit, credit = 0, 0                        
                         #for line in lines:
-                        #    print "Linea: %s - Debit: %s - Credit: %s - ME: %s " % (line['name'], line['debit'], line['credit'], line['amount_currency'])
+                        #    print "Linea: %s - Debit: %s - Credit: %s - Monto ME: %s - ME: %s" % \
+                        #    (line['name'], line['debit'], line['credit'], line['amount_currency'], line['currency_id'])
                         #    debit += line['debit']
                         #    credit += line['credit']
                         #print "debit: ", debit

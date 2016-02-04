@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+	<record id="view_voucher_wizard_argil" model="ir.ui.view">
+	<field name="name">Run Fixes</field>
+	<field name="model">account.voucher.tax.fix</field>
+	<field name="type">form</field>
+	<field name="arch" type="xml">
+        <form string="Select parameters" version="7.0">
+            <separator colspan="4" string="Corregir partidas de impuestos" />
+            <group col="4" colspan="4">
+                <field name="company_id" colspan="4"/>
+                <field name="date_start" />
+                <field name="date_end" />
+            </group>
+            <footer>
+                <button name="run_fixes" string="Corregir Partidas de Impuestos " type="object" icon="gtk-go-forward" />
+                or
+                <button class="oe_link" special="cancel" string="Cancel" />
+            </footer>
+        </form>	
+    </field>
+	</record>
+
+        <!--src_model="account.invoice"-->
+	<act_window name="Corregir partidas de Impuestos"		    
+	    res_model="account.voucher.tax.fix"
+	    view_mode="form"
+	    target="new"
+	     key2="client_action_multi"    
+	    id="action_view_invoice_payment_wizard_argil"/>
+                
+        
+    <menuitem id="action_view_invoice_payment_wizard_argil_menu" 
+              action="action_view_invoice_payment_wizard_argil" 
+              parent="account.menu_finance_periodical_processing" sequence="99" 
+            />
+        
+
+    <record id="view_voucher_wizard_argil2" model="ir.ui.view">
+	<field name="name">Run Fixes</field>
+	<field name="model">account.voucher.tax.fix2</field>
+	<field name="type">form</field>
+	<field name="arch" type="xml">
+        <form string="Select parameters" version="7.0">
+            <separator colspan="4" string="Corregir partidas de impuestos de los registros seleccionados ???" />
+            <footer>
+                <button name="run_fixes" string="Corregir Partidas de Impuestos " type="object" icon="gtk-go-forward" />
+                or
+                <button class="oe_link" special="cancel" string="Cancel" />
+            </footer>
+        </form>	
+    </field>
+	</record>
+    
+
+    <act_window name="Corregir partidas de impuestos"		    
+		res_model="account.voucher.tax.fix2"
+		src_model="account.voucher"
+		view_mode="form"
+		target="new"
+		key2="client_action_multi"    
+		id="action_voucher_wizard_argil2"/>	
+        
+        
+  </data>
+</openerp>

@@ -41,6 +41,11 @@ class account_move_line(osv.osv):
 class account_voucher(osv.Model):
     _inherit = 'account.voucher'
 
+    _columns = {
+            'payment_rate': fields.float('Exchange Rate', digits=(18,12), required=True, readonly=True, states={'draft': [('readonly', False)]},
+            help='The specific rate that will be used, in this voucher, between the selected currency (in \'Payment Rate Currency\' field)  and the voucher currency.'),
+        }
+    
     def voucher_move_line_create(self, cr, uid, voucher_id, line_total, move_id, company_currency, current_currency, context=None):
         res = super(account_voucher, self).voucher_move_line_create(cr, uid, voucher_id, line_total, move_id, company_currency, current_currency, context=None)
         self.voucher_move_line_tax_create(cr, uid, voucher_id, move_id, context=context)
@@ -141,7 +146,7 @@ class account_voucher(osv.Model):
                                                     current_currency, company_currency,
                                                     float('%.*f' % (2,mi_voucher_amount_currency3)),
                                                     round=False, context=ctx)
-
+                        mi_voucher_amount_currency2 = (current_currency==company_currency and invoice.currency_id.id!=current_currency)and round((mi_invoice * (1.0/voucher.payment_rate)), 2) or mi_voucher_amount_currency2
                         journal_id = voucher.journal_id.id
                         period_id = voucher.period_id.id
                         acc_a = inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False

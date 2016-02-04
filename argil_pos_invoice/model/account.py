@@ -148,7 +148,7 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
         for move in am_obj.browse(cr, uid, ids):
             for line in move.line_id:
                 if line.account_id.type=='receivable':
-                    #print "line: %s - %s - %s" % (move.name, line.account_id.code, line.account_id.name)
+                    print "line: %s - %s - %s" % (move.name, line.account_id.code, line.account_id.name)
                     amls.append(line.id)
         return amls
 	
@@ -172,7 +172,7 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                 if order.state != 'invoiced':
                     continue
                 for statement in order.statement_ids:
-                    if statement.statement_id.journal_id.pos_payments_remove_entries: 
+                    if statement.statement_id.journal_id.pos_payments_remove_entries or not statement.journal_entry_id.id: 
                         continue
                     aml_ids = [x.id for x in statement.journal_entry_id.line_id]
                     if aml_ids: data_aml_ids += aml_ids
@@ -180,6 +180,7 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                     posted = bool(statement.journal_entry_id.state=='posted')
                     if posted:
                         am_obj.button_cancel(cr, uid, [am_id])
+                        
                     if not statement.journal_entry_id.partner_id or statement.journal_entry_id.partner_id.id != invoice.partner_id.id:
                         am_obj.write(cr, uid, [am_id], {'partner_id': invoice.partner_id.id})
                         aml_obj.write(cr, uid, aml_ids, {'partner_id': invoice.partner_id.id})
@@ -249,8 +250,8 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                     """ % (move_id, cad, xstatement, invoice.partner_id.id, invoice.account_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))
                     if posted:
                         am_obj.post(cr, uid, [move_id])
-                aml_to_reconcile = self.get_aml_to_reconcile(cr, uid, [move_id, invoice.move_id.id])    
-                res2 = aml_obj.reconcile_partial(cr, uid, aml_to_reconcile, context=context)
+                    aml_to_reconcile = self.get_aml_to_reconcile(cr, uid, [move_id, invoice.move_id.id])
+                    res2 = aml_obj.reconcile_partial(cr, uid, aml_to_reconcile, context=context)
 
 
         #raise osv.except_osv('Pausa!', 'Pausa')

@@ -144,6 +144,7 @@ class pos_order(osv.osv):
                 inv_ids.append(order.invoice_id.id)
                 continue
             if not order.invoice_2_general_public:
+                #print "order: %s - %s - %s" % (order.name, order.partner_id and order.partner_id.name or 'Sin Partner', order.invoice_2_general_public)
                 res = self.action_invoice2(cr, uid, order, journal_id, context=context)
                 inv_ids.append(res)
             else:
@@ -349,7 +350,10 @@ class pos_order_invoice_wizard(osv.osv_memory):
             for line in rec.ticket_ids:
                 ids_to_invoice.append(line.ticket_id.id)
                 if line.invoice_2_general_public:
+                    #print "Facturar a Publico en General..."
                     ids_to_set_as_general_public.append(line.ticket_id.id)
+        # Ponemos todos los tickets a facturar como si no fueran Publico en General, esto por si se cancelo/elimino una Factura previa
+        cr.execute("update pos_order set invoice_2_general_public=false where id IN %s",(tuple(ids_to_invoice),))
         if ids_to_set_as_general_public:
             cr.execute("update pos_order set invoice_2_general_public=true where id IN %s",(tuple(ids_to_set_as_general_public),))                
         if ids_to_invoice:

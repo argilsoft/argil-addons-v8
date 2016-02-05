@@ -217,7 +217,7 @@ class account_voucher(osv.Model):
                                     'partner_id': invoice.partner_id.id,
                                     'debit': ((amount_diff < 0 and invoice.type=='out_invoice') or (amount_diff >= 0 and invoice.type=='in_invoice')) and abs(amount_diff) or 0.0,
                                     'credit': ((amount_diff < 0 and invoice.type=='in_invoice') or (amount_diff >= 0 and invoice.type=='out_invoice')) and abs(amount_diff) or 0.0,
-                                    'account_id': (amount_diff < 0 ) and invoice.company_id.income_currency_exchange_account_id.id or invoice.company_id.expense_currency_exchange_account_id.id,
+                                    #'account_id': (amount_diff < 0 ) and invoice.company_id.income_currency_exchange_account_id.id or invoice.company_id.expense_currency_exchange_account_id.id,
                                     'journal_id': journal_id,
                                     'period_id': period_id,
                                     'company_id': invoice.company_id.id,
@@ -228,6 +228,10 @@ class account_voucher(osv.Model):
                                     'amount_currency' : False,
                                     'state' : 'valid',
                                     }
+                                line3.update({
+                                            'account_id': invoice.company_id.expense_currency_exchange_account_id.id if (line3['debit'] and not line3['credit'])\
+                                                            else invoice.company_id.income_currency_exchange_account_id.id,
+                                        })
                             else:
                                 line3 = {}
                         lines = line3 and [line1,line2,line3] or [line1,line2]

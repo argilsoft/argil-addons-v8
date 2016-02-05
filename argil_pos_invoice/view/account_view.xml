@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <field name="self_checkout_payment_method" position="after">
                     <field name="pos_dont_create_entries" attrs="{'invisible':[('type','not in', ('cash','sale'))]}"/>
-                    <field name="pos_payments_remove_entries" attrs="{'invisible':[('type','not in', ('cash',))]}"/>
+                    <field name="pos_payments_remove_entries" attrs="{'invisible':[('type','not in', ('cash','bank'))]}"/>
                 </field>
             </field>
         </record>

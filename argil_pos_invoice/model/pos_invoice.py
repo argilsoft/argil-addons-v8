@@ -164,7 +164,7 @@ class pos_order(osv.osv):
                         'taxes_id'            : ",".join([str(x.id) for x in line.product_id.taxes_id]),
                         'price_subtotal'      : line.price_subtotal * (1.0 + xval),
                         'price_subtotal_incl' : line.price_subtotal_incl,
-                        }
+                        }                    
                     key = (val['tax_names'],val['taxes_id'])
                     if not key in lines:
                         lines[key] = val
@@ -212,9 +212,10 @@ class pos_order(osv.osv):
                     'quantity'  : 1,
                     'account_id': order.lines[0].product_id.property_account_income.id or order.lines[0].product_id.categ_id.property_account_income_categ.id,
                     'uos_id'    : uom_id[0],
-                    'price_unit': line['price_subtotal'],
+                    'price_unit': line['price_subtotal_incl'],
                     'discount'  : 0,
-                    'invoice_line_tax_id' : [(6, 0, line['taxes_id'].split(','))] if line['taxes_id'] else False,
+                    'invoice_line_tax_id' : [(6, 0, [int(x) for x in line['taxes_id'].split(',')])],
+                                              #line['taxes_id'].split(','))] if line['taxes_id'] else False,
                 }
 
                 inv_line_ref.create(cr, uid, inv_line, context=context)
@@ -252,11 +253,8 @@ class pos_order_invoice_wizard(osv.osv_memory):
         return journal and journal[0] or False
 	
     def default_get(self, cr, uid, fields, context=None):
-        #print "context: ", context
         if context is None: context = {}
-        #print "context: ", context
         res = super(pos_order_invoice_wizard, self).default_get(cr, uid, fields, context=context)
-        #print "context: ", context
         record_ids = context.get('active_ids', [])
         pos_order_obj = self.pool.get('pos.order')
         if not record_ids:
@@ -273,9 +271,6 @@ class pos_order_invoice_wizard(osv.osv_memory):
 #        partner_id = partner_obj.browse(cr, uid, addr['invoice'])[0].id
         
         for ticket in pos_order_obj.browse(cr, uid, record_ids, context):
-            #print "ticket.name: ", ticket.name
-            #print "ticket.state: ", ticket.state
-            #print "ticket.invoice_id: ", bool(ticket.invoice_id)
             
             if ticket.state in ('invoiced','cancel') and bool(ticket.invoice_id):
                 continue
@@ -291,7 +286,6 @@ class pos_order_invoice_wizard(osv.osv_memory):
 					
 					})
         res.update(ticket_ids=tickets)
-        #print "res: ", res
         return res
 
     def _get_period(self, cr, uid, context=None):
@@ -350,7 +344,6 @@ class pos_order_invoice_wizard(osv.osv_memory):
             for line in rec.ticket_ids:
                 ids_to_invoice.append(line.ticket_id.id)
                 if line.invoice_2_general_public:
-                    #print "Facturar a Publico en General..."
                     ids_to_set_as_general_public.append(line.ticket_id.id)
         # Ponemos todos los tickets a facturar como si no fueran Publico en General, esto por si se cancelo/elimino una Factura previa
         cr.execute("update pos_order set invoice_2_general_public=false where id IN %s",(tuple(ids_to_invoice),))

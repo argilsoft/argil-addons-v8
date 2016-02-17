@@ -208,7 +208,7 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                         as
                         select now() create_date, now() write_date, create_uid, write_uid, date, company_id,
                             statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref, 'Pagos de Sesion: ' || ref as name,
+                            state, account_id, period_id, ref, 'Pagos de Sesion: ' || ref as name,
                             %s::integer as move_id,
                             case 
                             when sum(debit) - sum(credit) > 0 then sum(debit) - sum(credit)
@@ -222,7 +222,7 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                             where id in (%s) and statement_id=%s
                             group by create_uid, write_uid, date, company_id, 
                             statement_id, partner_id, blocked, journal_id, centralisation, 
-                            state, account_id, period_id, not_move_diot, ref;
+                            state, account_id, period_id, ref;
 
                         update argil_account_move_line
                         set partner_id = %s 
@@ -238,11 +238,11 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                         (
                             create_date, write_date, create_uid,  write_uid, date, company_id, 
                             statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
+                            state, account_id, period_id, ref, name, move_id,
                             debit, credit)
                         (select create_date, write_date, create_uid,  write_uid, date, company_id, 
                             statement_id, partner_id, blocked, journal_id, centralisation,
-                            state, account_id, period_id, not_move_diot, ref, name, move_id,
+                            state, account_id, period_id, ref, name, move_id,
                             debit, credit
                         from argil_account_move_line);
                         drop table if exists argil_account_move_line;

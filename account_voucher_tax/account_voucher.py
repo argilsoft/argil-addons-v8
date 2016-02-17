@@ -153,13 +153,13 @@ class account_voucher(osv.Model):
                         date = voucher.date
                         if ((invoice.type=='out_invoice' and inv_line_tax.tax_id.amount >= 0.0) or \
                                      (invoice.type=='in_invoice' and inv_line_tax.tax_id.amount < 0.0)):
-                            debit = mi_company_curr_orig
+                            debit = abs(mi_company_curr_orig)
                             credit = 0
                             amount_currency = (company_currency != invoice_curr) and abs(mi_invoice) or False
                         elif ((invoice.type=='in_invoice' and inv_line_tax.tax_id.amount >= 0.0) or \
                                      (invoice.type=='out_invoice' and inv_line_tax.tax_id.amount < 0.0)):
                             debit = 0
-                            credit = mi_company_curr_orig
+                            credit = abs(mi_company_curr_orig)
                             amount_currency = (company_currency != invoice.currency_id.id) and -abs(mi_invoice) or False
                         
                         

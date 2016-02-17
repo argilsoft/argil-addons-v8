@@ -162,10 +162,11 @@ class pos_order(osv.osv):
                     val={
                         'tax_names'           : ", ".join([x.name for x in line.product_id.taxes_id]),
                         'taxes_id'            : ",".join([str(x.id) for x in line.product_id.taxes_id]),
-                        'price_subtotal'      : line.price_subtotal * (1.0 + xval),
+                        'price_subtotal'      : line.price_subtotal,# * (1.0 + xval),
                         'price_subtotal_incl' : line.price_subtotal_incl,
+                        'tax_price_include'   : tax.price_include,
                         }                    
-                    key = (val['tax_names'],val['taxes_id'])
+                    key = (val['tax_names'],val['taxes_id'],val['tax_price_include'])
                     if not key in lines:
                         lines[key] = val
                         lines[key]['price_subtotal'] = val['price_subtotal']
@@ -212,9 +213,9 @@ class pos_order(osv.osv):
                     'quantity'  : 1,
                     'account_id': order.lines[0].product_id.property_account_income.id or order.lines[0].product_id.categ_id.property_account_income_categ.id,
                     'uos_id'    : uom_id[0],
-                    'price_unit': line['price_subtotal_incl'],
+                    'price_unit': line['price_subtotal_incl'] if line['tax_price_include'] else line['price_subtotal'],
                     'discount'  : 0,
-                    'invoice_line_tax_id' : [(6, 0, [int(x) for x in line['taxes_id'].split(',')])],
+                    'invoice_line_tax_id' : [(6, 0, [int(x) for x in line['taxes_id'].split(',')])] if line['taxes_id'] else False,
                                               #line['taxes_id'].split(','))] if line['taxes_id'] else False,
                 }
 

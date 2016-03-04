@@ -90,6 +90,12 @@ class account_voucher(osv.Model):
                 move_id = line.move_line_id and line.move_line_id.move_id and line.move_line_id.move_id.id or False
                 invoice_ids = invoice_obj.search(cr, uid, [('move_id', '=', move_id)], context=context)                
                 for invoice in invoice_obj.browse(cr, uid, invoice_ids, context=context):
+                    if invoice.type not in ('out_invoice','in_invoice'):
+                        continue
+                    #print "-.-.-.-.-.-.-.-.-.-.-.-.-."
+                    #print "Invoice: No. %s - Subtotal: %s - Impuestos: %s - Total: %s" % (invoice.number, invoice.amount_untaxed, invoice.amount_tax, invoice.amount_total)
+                    #print "Invoice Curr: ", invoice.currency_id.name
+                    #print "Invoice Type: ", invoice.type                        
                     for inv_line_tax in invoice.tax_line:
                         if not inv_line_tax.tax_id.tax_voucher_ok: # or not inv_line_tax.tax_id.tax_category_id.name in ('IVA', 'IVA-EXENTO', 'IVA-RET', 'IVA-PART'):
                             continue
@@ -105,9 +111,7 @@ class account_voucher(osv.Model):
                         ctx['date'] = invoice.date_invoice 
                         xmi_company_curr_orig = 0
                         if invoice.move_id and invoice.move_id.line_id:
-                            #print "-.-.-.-.-.-.-.-.-.-.-.-.-."
-                            #print "Invoice: No. %s - Subtotal: %s - Impuestos: %s - Total: %s" % (invoice.number, invoice.amount_untaxed, invoice.amount_tax, invoice.amount_total)
-                            #print "Invoice Curr: ", invoice.currency_id.name
+                            #print "invoice.move_id.name: ", invoice.move_id.name
                             for move_line in invoice.move_id.line_id:
                                 #print "move_line.account_id.code: ", move_line.account_id.code
                                 #print "inv_line_tax.tax_id.account_collected_id.code: ", inv_line_tax.tax_id.account_collected_id.code
@@ -171,8 +175,7 @@ class account_voucher(osv.Model):
                                      (invoice.type=='out_invoice' and inv_line_tax.tax_id.amount < 0.0)):
                             debit = 0
                             credit = abs(mi_company_curr_orig)
-                            amount_currency = (company_currency != invoice.currency_id.id) and -abs(mi_invoice) or False
-                        
+                            amount_currency = (company_currency != invoice.currency_id.id) and -abs(mi_invoice) or False                        
                         
                         # Partida correspondiente al Monto Original del Impuesto en la factura
                         line2 = {

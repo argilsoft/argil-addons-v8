@@ -162,11 +162,14 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
         pos_order_obj = self.pool.get('pos.order')
         
         for invoice in inv_obj.browse(cr, uid, rec_ids, context):
+            print "----------------------------------------"
+            print "Procesando Factura: ", invoice.number
             if invoice.state != 'open':
                 continue                
             order_ids = pos_order_obj.search(cr, uid, [('invoice_id','=',invoice.id)])
             data_statement_line_ids, data_aml_ids = [], []
             for order in pos_order_obj.browse(cr, uid, order_ids, context):
+                print "order: %s - %s " % (order.name, order.amount_total)
                 if order.session_id.state != 'closed':
                     raise osv.except_osv('Advertencia!', "La Sesion %s del TPV %s asociado al Ticket %s el cual esta asociado a la Factura %s no ha sido cerrada, no se pudo realizar la Conciliacion de los Pagos. Primero cierre la sesion para poder correr este proceso." % (order.session_id.name, order.session_id.config_id.name, order.name, invoice.number))
                 if order.state != 'invoiced':

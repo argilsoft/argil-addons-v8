@@ -100,15 +100,23 @@ class account_voucher(osv.Model):
                         voucher_curr = current_currency
                         invoice_curr = invoice.currency_id.id
                         company_curr = company_currency
-                        mi_invoice = inv_line_tax.amount * factor
+                        mi_invoice = float(float(inv_line_tax.amount) * float(factor))
                         mib_invoice = inv_line_tax.base_amount * factor
                         ctx['date'] = invoice.date_invoice 
                         xmi_company_curr_orig = 0
                         if invoice.move_id and invoice.move_id.line_id:
+                            #print "-.-.-.-.-.-.-.-.-.-.-.-.-."
+                            #print "Invoice: No. %s - Subtotal: %s - Impuestos: %s - Total: %s" % (invoice.number, invoice.amount_untaxed, invoice.amount_tax, invoice.amount_total)
+                            #print "Invoice Curr: ", invoice.currency_id.name
                             for move_line in invoice.move_id.line_id:
-                                if move_line.account_id.id == inv_line_tax.tax_id.account_collected_id.id:
+                                #print "move_line.account_id.code: ", move_line.account_id.code
+                                #print "inv_line_tax.tax_id.account_collected_id.code: ", inv_line_tax.tax_id.account_collected_id.code
+                                if move_line.account_id.id == inv_line_tax.tax_id.account_collected_id.id or \
+                                    (move_line.tax_id_secondary.id==inv_line_tax.tax_id.id and move_line.account_id.type=='other' and \
+                                     move_line.account_id.user_type.report_type not in ('income','expense')):
                                     xmi_company_curr_orig = move_line.debit + move_line.credit
                                     mib_company_curr_orig = move_line.amount_base
+                            #print "xmi_company_curr_orig: ", xmi_company_curr_orig
                         if xmi_company_curr_orig:
                             mi_company_curr_orig = xmi_company_curr_orig * factor
                             #mib_company_curr_orig = inv_line_tax.tax_id.amount and (mi_company_curr_orig / inv_line_tax.tax_id.amount) or mi_company_curr_orig
@@ -118,6 +126,8 @@ class account_voucher(osv.Model):
                                     float('%.*f' % (2,mi_invoice)),
                                     round=False, context=ctx)
                             mib_company_curr_orig = mib_invoice
+                        #print "mi_company_curr_orig: ", mi_company_curr_orig
+                        #print "mib_company_curr_orig: ", mib_company_curr_orig
                         mi_voucher_curr_orig = currency_obj.compute(cr, uid,
                                     invoice.currency_id.id, voucher_curr,
                                     float('%.*f' % (2,mi_invoice)),
@@ -146,7 +156,8 @@ class account_voucher(osv.Model):
                                                     current_currency, company_currency,
                                                     float('%.*f' % (2,mi_voucher_amount_currency3)),
                                                     round=False, context=ctx)
-                        mi_voucher_amount_currency2 = (current_currency==company_currency and invoice.currency_id.id!=current_currency)and round((mi_invoice * (1.0/voucher.payment_rate)), 2) or mi_voucher_amount_currency2
+
+                        mi_voucher_amount_currency2 = (current_currency==company_currency and invoice.currency_id.id!=current_currency) and round((mi_invoice * round(1.0/voucher.payment_rate,4)),2) or mi_voucher_amount_currency2
                         journal_id = voucher.journal_id.id
                         period_id = voucher.period_id.id
                         acc_a = inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False
@@ -247,6 +258,7 @@ class account_voucher(osv.Model):
                             move_create = move_line_obj.create(cr, uid, move_line_tax,
                                                     context=context)
                             move_ids.append(move_create)
+        #raise osv.except_osv('Advertencia !',"Pausa")
         return move_ids
 
 

@@ -123,7 +123,7 @@ class account_voucher(osv.Model):
                             #print "xmi_company_curr_orig: ", xmi_company_curr_orig
                         if xmi_company_curr_orig:
                             mi_company_curr_orig = xmi_company_curr_orig * factor
-                            #mib_company_curr_orig = inv_line_tax.tax_id.amount and (mi_company_curr_orig / inv_line_tax.tax_id.amount) or mi_company_curr_orig
+                            mib_company_curr_orig = inv_line_tax.tax_id.amount and (mi_company_curr_orig / inv_line_tax.tax_id.amount) or mi_company_curr_orig
                         else:
                             mi_company_curr_orig = currency_obj.compute(cr, uid,
                                     invoice.currency_id.id, company_curr,

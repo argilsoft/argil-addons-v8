@@ -82,6 +82,11 @@ class account_voucher(osv.Model):
         for voucher in self.browse(cr, uid, [voucher_id], context=context):
             if voucher.amount <= 0.07:
               continue
+            count_voucher_lines = 0
+            for x in voucher.line_ids:
+                if (voucher.type == 'receipt' and x.type=='cr' and x.amount > 0 and x.move_line_id) or \
+                    (voucher.type == 'payment' and x.type=='dr' and x.amount > 0 and x.move_line_id):
+                    count_voucher_lines += 1
             for line in voucher.line_ids:
                 if line.amount <= 0.0 or not (line.move_line_id and line.move_line_id.move_id):
                     continue
@@ -160,8 +165,10 @@ class account_voucher(osv.Model):
                                                     current_currency, company_currency,
                                                     float('%.*f' % (2,mi_voucher_amount_currency3)),
                                                     round=False, context=ctx)
-
+                        
                         mi_voucher_amount_currency2 = (current_currency==company_currency and invoice.currency_id.id!=current_currency) and round((mi_invoice * round(1.0/voucher.payment_rate,4)),2) or mi_voucher_amount_currency2
+                        if count_voucher_lines == 1 and current_currency==company_currency and invoice.currency_id.id!=current_currency:
+                            mi_voucher_amount_currency2 = inv_line_tax.tax_id.amount and (voucher.amount / (1.0 + inv_line_tax.tax_id.amount) * inv_line_tax.tax_id.amount) or mi_voucher_amount_currency2
                         journal_id = voucher.journal_id.id
                         period_id = voucher.period_id.id
                         acc_a = inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False

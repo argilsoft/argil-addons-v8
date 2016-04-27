@@ -385,7 +385,7 @@ class files_generator_wizard(osv.osv_memory):
                 raise osv.except_osv(u'Archivo vac\xedo', u'Ninguna cuenta de la balanza en este per\xedodo est\xe1 marcada para considerarse en el XML.')
             content = [('Version', '1.1'),
              ('RFC', user.company_id.rfc),
-             ('Mes', period_id.date_start[5:7]),
+             ('Mes', form.month),#period_id.date_start[5:7]),
              ('Anio', period_id.date_start[0:4]),
              ('TipoEnvio', form.trial_delivery),
              ('unroot', ctas)]

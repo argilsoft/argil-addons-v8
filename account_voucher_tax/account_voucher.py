@@ -82,11 +82,17 @@ class account_voucher(osv.Model):
         for voucher in self.browse(cr, uid, [voucher_id], context=context):
             if voucher.amount <= 0.07:
               continue
+            #print "TC: ", voucher.payment_rate
+            voucher_amount_company_curr = round((company_currency == current_currency) and voucher.amount or \
+                                            (voucher.amount * voucher.payment_rate), 2)
+            #print "voucher_amount_company_curr: ", voucher_amount_company_curr
+
             sum_voucher_lines  = 0.0
             for x in voucher.line_ids:
                 if (voucher.type == 'receipt' and x.type=='cr' and x.amount > 0 and x.move_line_id) or \
                     (voucher.type == 'payment' and x.type=='dr' and x.amount > 0 and x.move_line_id):
-                    sum_voucher_lines += (x.amount / (x.move_line_id.debit + x.move_line_id.credit)) * x.move_line_id.amount_currency
+                    sum_voucher_lines += (company_currency != current_currency) and x.amount or \
+                                (x.amount / (x.move_line_id.debit + x.move_line_id.credit)) * x.move_line_id.amount_currency
             for line in voucher.line_ids:
                 if line.amount <= 0.0 or not (line.move_line_id and line.move_line_id.move_id):
                     continue
@@ -171,6 +177,15 @@ class account_voucher(osv.Model):
                             factor_base = ((line.move_line_id.amount_currency * factor)/ sum_voucher_lines)
                             mi_voucher_amount_currency2 = inv_line_tax.tax_id.amount and \
                                         round(((voucher.amount * factor_base) / (1.0 + inv_line_tax.tax_id.amount) * inv_line_tax.tax_id.amount),2) or mi_voucher_amount_currency2
+                        elif sum_voucher_lines and current_currency == invoice.currency_id.id and invoice.currency_id.id != company_currency:
+                            factor_base = ((line.move_line_id.amount_currency * factor) / sum_voucher_lines)
+                            #print "line.move_line_id.amount_currency: ", line.move_line_id.amount_currency
+                            #print "factor: ", factor
+                            #print "sum_voucher_lines: ", sum_voucher_lines
+                            #print "factor_base: ", factor_base
+                            mi_voucher_amount_currency2 = inv_line_tax.tax_id.amount and \
+                                        round(((voucher_amount_company_curr * factor_base) / (1.0 + inv_line_tax.tax_id.amount) * inv_line_tax.tax_id.amount),2) or mi_voucher_amount_currency2
+                                
                         journal_id = voucher.journal_id.id
                         period_id = voucher.period_id.id
                         acc_a = inv_line_tax.account_analytic_id and inv_line_tax.account_analytic_id.id or False

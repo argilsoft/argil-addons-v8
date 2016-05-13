@@ -84,7 +84,12 @@ class account_voucher(osv.Model):
               continue
             #print "TC: ", voucher.payment_rate
             voucher_amount_company_curr = round((company_currency == current_currency) and voucher.amount or \
-                                            (voucher.amount * voucher.payment_rate), 2)
+                                                (voucher.payment_rate_currency_id.id == company_currency and (voucher.amount * voucher.payment_rate)) or \
+                                                currency_obj.compute(cr, uid,
+                                                current_currency, company_currency,
+                                                float('%.*f' % (2,voucher.amount)),
+                                                round=False, context={'date':voucher.date}), 2)
+                                                
             #print "voucher_amount_company_curr: ", voucher_amount_company_curr
 
             sum_voucher_lines  = 0.0

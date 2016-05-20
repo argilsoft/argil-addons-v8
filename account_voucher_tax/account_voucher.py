@@ -184,10 +184,6 @@ class account_voucher(osv.Model):
                                         round(((voucher.amount * factor_base) / (1.0 + inv_line_tax.tax_id.amount) * inv_line_tax.tax_id.amount),2) or mi_voucher_amount_currency2
                         elif sum_voucher_lines and current_currency == invoice.currency_id.id and invoice.currency_id.id != company_currency:
                             factor_base = ((line.move_line_id.amount_currency * factor) / sum_voucher_lines)
-                            #print "line.move_line_id.amount_currency: ", line.move_line_id.amount_currency
-                            #print "factor: ", factor
-                            #print "sum_voucher_lines: ", sum_voucher_lines
-                            #print "factor_base: ", factor_base
                             mi_voucher_amount_currency2 = inv_line_tax.tax_id.amount and \
                                         round(((voucher_amount_company_curr * factor_base) / (1.0 + inv_line_tax.tax_id.amount) * inv_line_tax.tax_id.amount),2) or mi_voucher_amount_currency2
                                 
@@ -222,7 +218,7 @@ class account_voucher(osv.Model):
                             'analytic_account_id': acc_a,
                             'date': date,
                             'currency_id': (company_currency != invoice_curr) and invoice_curr or False,
-                            'amount_currency' : amount_currency,
+                            'amount_currency' : abs(amount_currency) * (debit > 0.0 and 1 or (credit > 0.0 and -1 or 1)),
                             'amount_base' : abs(mib_company_curr_orig),
                             'state' : 'valid',
                             'invoice_voucher_id':invoice.id,
@@ -243,11 +239,13 @@ class account_voucher(osv.Model):
                         elif xparam == "1":
                             line1.update({
                                 'name': inv_line_tax.tax_id.name + ((_(" - Voucher Amount Invoice: ") +  (invoice.supplier_invoice_number or invoice.internal_number)) or ''),    
-                                'debit':  ((mi_voucher_amount_currency2 >= 0 and invoice.type=='in_invoice') or (mi_voucher_amount_currency2 < 0 and invoice.type=='out_invoice')) and abs(mi_voucher_amount_currency2) or 0.0,
-                                'credit': ((mi_voucher_amount_currency2 >= 0 and invoice.type=='out_invoice') or (mi_voucher_amount_currency2 < 0 and invoice.type=='in_invoice')) and abs(mi_voucher_amount_currency2) or 0.0,
+                                'debit':  0.0 if line2['debit'] else abs(mi_voucher_amount_currency2), 
+                                'credit': 0.0 if line2['credit'] else abs(mi_voucher_amount_currency2), 
                                 'account_id': dest_account_id,
+                                'currency_id': False,
+                                'amount_currency' : False,
                                 #'currency_id': (company_currency != current_currency) and current_currency or False,
-                                'amount_currency' : line2['amount_currency'] and -line2['amount_currency'] or False,
+                                #'amount_currency' : line2['amount_currency'] and -line2['amount_currency'] or False,
                                 'amount_base' : abs(mi_voucher_amount_currency2 / inv_line_tax.tax_id.amount),
                                 })
 
@@ -270,6 +268,7 @@ class account_voucher(osv.Model):
                                     'currency_id': False,
                                     'amount_currency' : False,
                                     'state' : 'valid',
+                                    'amount_base' : False,
                                     }
                                 line3.update({
                                             'account_id': invoice.company_id.expense_currency_exchange_account_id.id if (line3['debit'] and not line3['credit'])\
@@ -280,8 +279,8 @@ class account_voucher(osv.Model):
                         lines = line3 and [line1,line2,line3] or [line1,line2]
                         #debit, credit = 0, 0                        
                         #for line in lines:
-                        #    print "Linea: %s - Debit: %s - Credit: %s - Monto ME: %s - ME: %s" % \
-                        #    (line['name'], line['debit'], line['credit'], line['amount_currency'], line['currency_id'])
+                        #    print "Linea: %s - Debit: %s - Credit: %s - Monto ME: %s - ME: %s - Monto Base: %s" % \
+                        #    (line['name'], line['debit'], line['credit'], line['amount_currency'], line['currency_id'], line['amount_base'])
                         #    debit += line['debit']
                         #    credit += line['credit']
                         #print "debit: ", debit

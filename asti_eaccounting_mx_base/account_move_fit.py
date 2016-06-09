@@ -71,36 +71,39 @@ class account_move_fit(osv.osv):
         for mid in ids:
             move = self.browse(cr, uid, mid)
             for ln in move.line_id:
-                if not len([ x for x in ln.complement_line_ids if x.type_key == 'cfdi' ]) and ln.account_id.apply_in_cfdi:
-                    raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un CFDI en sus asientos.' % ln.account_id.name)
-                if not len([ x for x in ln.complement_line_ids if x.type_key == 'other' ]) and ln.account_id.apply_in_other:
-                    raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un CFD / CBB en sus asientos.' % ln.account_id.name)
-                if not len([ x for x in ln.complement_line_ids if x.type_key == 'foreign' ]) and ln.account_id.apply_in_forgn:
-                    raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un comprobante extranjero en sus asientos.' % ln.account_id.name)
-                if not len([ x for x in ln.complement_line_ids if x.type_key == 'check' ]) and ln.account_id.apply_in_check:
-                    raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un cheque en sus asientos.' % ln.account_id.name)
-                if not len([ x for x in ln.complement_line_ids if x.type_key == 'transfer' ]) and ln.account_id.apply_in_trans:
-                    raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos una transferencia en sus asientos.' % ln.account_id.name)
-                if not len([ x for x in ln.complement_line_ids if x.type_key == 'payment' ]) and ln.account_id.apply_in_paymth:
-                    raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un m\xe9todo de pago en sus asientos.' % ln.account_id.name)
-                for cmpl in ln.complement_line_ids + move.complement_line_ids:
-                    location = ' en Auxiliar de folios' if cmpl.move_id else ' en complementos por asiento'
-                    if cmpl.origin_bank_id and not cmpl.origin_bank_id.sat_bank_id:
-                        raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" no tiene asignado un c\xf3digo del SAT' % cmpl.origin_bank_id.name)
-                    if cmpl.origin_bank_id and cmpl.origin_bank_id.sat_bank_id.bic == '999' and not cmpl.origin_frgn_bank:
-                        raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" est\xe1 marcado como extranjero, pero una l\xednea de su complemento no contiene el nombre del banco.' % cmpl.origin_bank_id.name)
-                    if cmpl.destiny_bank_id and not cmpl.destiny_bank_id.sat_bank_id:
-                        raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" no tiene asignado un c\xf3digo del SAT' % cmpl.destiny_bank_id.name)
-                    if cmpl.destiny_bank_id and cmpl.destiny_bank_id.sat_bank_id.bic == '999' and not cmpl.destiny_frgn_bank:
-                        raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" est\xe1 marcado como extranjero, pero una l\xednea de su complemento no contiene el nombre del banco.' % cmpl.destiny_bank_id.name)
-                    if cmpl.uuid and len(cmpl.uuid) != 36 or cmpl.uuid and not _UUID_PATTERN.match(cmpl.uuid.upper()):
-                        raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'El UUID "%s" no se apega a los lineamientos del SAT.' % cmpl.uuid)
-                    if cmpl.rfc and not _RFC_PATTERN.match(cmpl.rfc):
-                        raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'El RFC "%s" no es v\xe1lido con respecto a los lineamientos del SAT.' % cmpl.rfc)
-                    if cmpl.rfc2 and not _RFC_PATTERN.match(cmpl.rfc2):
-                        raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'El RFC "%s" no es v\xe1lido con respecto a los lineamientos del SAT.' % cmpl.rfc2)
-                    if cmpl.cbb_series and not _SERIES_PATTERN.match(cmpl.cbb_series):
-                        raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'La "Serie" en el comprobante solo debe contener letras.')
+                try:
+                    if ln.account_id.apply_in_cfdi and not len([ x for x in ln.complement_line_ids if x.type_key == 'cfdi' ]):
+                        raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un CFDI en sus asientos.' % ln.account_id.name)
+                    if ln.account_id.apply_in_other and not len([ x for x in ln.complement_line_ids if x.type_key == 'other' ]):
+                        raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un CFD / CBB en sus asientos.' % ln.account_id.name)
+                    if ln.account_id.apply_in_forgn and not len([ x for x in ln.complement_line_ids if x.type_key == 'foreign' ]):
+                        raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un comprobante extranjero en sus asientos.' % ln.account_id.name)
+                    if ln.account_id.apply_in_check and not len([ x for x in ln.complement_line_ids if x.type_key == 'check' ]):
+                        raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un cheque en sus asientos.' % ln.account_id.name)
+                    if ln.account_id.apply_in_trans and not len([ x for x in ln.complement_line_ids if x.type_key == 'transfer' ]):
+                        raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos una transferencia en sus asientos.' % ln.account_id.name)
+                    if ln.account_id.apply_in_paymth and not len([ x for x in ln.complement_line_ids if x.type_key == 'payment' ]):
+                        raise osv.except_osv(u'Complemento faltante', u'La cuenta "%s" est\xe1 configurada para asignar al menos un m\xe9todo de pago en sus asientos.' % ln.account_id.name)
+                    for cmpl in ln.complement_line_ids + move.complement_line_ids:
+                        location = ' en Auxiliar de folios' if cmpl.move_id else ' en complementos por asiento'
+                        if cmpl.origin_bank_id and not cmpl.origin_bank_id.sat_bank_id:
+                            raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" no tiene asignado un c\xf3digo del SAT' % cmpl.origin_bank_id.name)
+                        if cmpl.origin_bank_id and cmpl.origin_bank_id.sat_bank_id.bic == '999' and not cmpl.origin_frgn_bank:
+                            raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" est\xe1 marcado como extranjero, pero una l\xednea de su complemento no contiene el nombre del banco.' % cmpl.origin_bank_id.name)
+                        if cmpl.destiny_bank_id and not cmpl.destiny_bank_id.sat_bank_id:
+                            raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" no tiene asignado un c\xf3digo del SAT' % cmpl.destiny_bank_id.name)
+                        if cmpl.destiny_bank_id and cmpl.destiny_bank_id.sat_bank_id.bic == '999' and not cmpl.destiny_frgn_bank:
+                            raise osv.except_osv('Datos faltantes' + location, u'El banco "%s" est\xe1 marcado como extranjero, pero una l\xednea de su complemento no contiene el nombre del banco.' % cmpl.destiny_bank_id.name)
+                        if cmpl.uuid and len(cmpl.uuid) != 36 or cmpl.uuid and not _UUID_PATTERN.match(cmpl.uuid.upper()):
+                            raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'El UUID "%s" no se apega a los lineamientos del SAT.' % cmpl.uuid)
+                        if cmpl.rfc and not _RFC_PATTERN.match(cmpl.rfc):
+                            raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'El RFC "%s" no es v\xe1lido con respecto a los lineamientos del SAT.' % cmpl.rfc)
+                        if cmpl.rfc2 and not _RFC_PATTERN.match(cmpl.rfc2):
+                            raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'El RFC "%s" no es v\xe1lido con respecto a los lineamientos del SAT.' % cmpl.rfc2)
+                        if cmpl.cbb_series and not _SERIES_PATTERN.match(cmpl.cbb_series):
+                            raise osv.except_osv(u'Informaci\xf3n incorrecta' + location, u'La "Serie" en el comprobante solo debe contener letras.')
+                except:
+                    continue
 
 
 

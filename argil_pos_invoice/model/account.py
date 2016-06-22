@@ -143,13 +143,14 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
 	
 
     def get_aml_to_reconcile(self, cr, uid, ids, context=None):
-        am_obj = self.pool.get('account.move')
-        amls = []
-        for move in am_obj.browse(cr, uid, ids):
-            for line in move.line_id:
-                if line.account_id.type=='receivable':
-                    print "line: %s - %s - %s" % (move.name, line.account_id.code, line.account_id.name)
-                    amls.append(line.id)
+        sql = """select id 
+                from account_move_line 
+                where move_id in (%s)
+                and account_id in (select id from account_account where type='receivable');""" % (','.join([str(x) for x in ids]))
+        #print "sql: ", sql
+        cr.execute(sql)
+        amls = [x[0] for x in cr.fetchall()]
+        #print "amls: ", amls
         return amls
 	
     def reconcile_invoice_with_pos_payments(self, cr, uid, ids, context=None):
@@ -162,50 +163,67 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
         pos_order_obj = self.pool.get('pos.order')
         
         for invoice in inv_obj.browse(cr, uid, rec_ids, context):
-            print "----------------------------------------"
-            print "Procesando Factura: ", invoice.number
+            #print "----------------------------------------"
+            #print "Procesando Factura: ", invoice.number
             if invoice.state != 'open':
-                continue                
+                continue
             order_ids = pos_order_obj.search(cr, uid, [('invoice_id','=',invoice.id)])
+            #print "order_ids: ", order_ids
             data_statement_line_ids, data_aml_ids = [], []
             for order in pos_order_obj.browse(cr, uid, order_ids, context):
-                print "order: %s - %s " % (order.name, order.amount_total)
+                #print "order: %s - %s " % (order.name, order.amount_total)
                 if order.session_id.state != 'closed':
                     raise osv.except_osv('Advertencia!', "La Sesion %s del TPV %s asociado al Ticket %s el cual esta asociado a la Factura %s no ha sido cerrada, no se pudo realizar la Conciliacion de los Pagos. Primero cierre la sesion para poder correr este proceso." % (order.session_id.name, order.session_id.config_id.name, order.name, invoice.number))
                 if order.state != 'invoiced':
                     continue
                 for statement in order.statement_ids:
+                    #print "statement: ", statement
                     if statement.statement_id.journal_id.pos_payments_remove_entries or not statement.journal_entry_id.id: 
                         continue
                     aml_ids = [x.id for x in statement.journal_entry_id.line_id]
-                    if aml_ids: data_aml_ids += aml_ids
+                    #print "aml_ids: ", aml_ids
+                    if aml_ids: 
+                        data_aml_ids += aml_ids
                     am_id = statement.journal_entry_id.id
+                    #print "am_id: %s, %s, %s", (am_id, statement.journal_entry_id.name, statement.journal_entry_id.state)
                     posted = bool(statement.journal_entry_id.state=='posted')
                     if posted:
                         am_obj.button_cancel(cr, uid, [am_id])
-                        
+                    
+                    #print "statement.journal_entry_id.partner_id: %s - %s" % (statement.journal_entry_id.partner_id.id, statement.journal_entry_id.partner_id.name)
+                    #print "invoice.partner_id: %s - %s" % (invoice.partner_id.id, invoice.partner_id.name)
                     if not statement.journal_entry_id.partner_id or statement.journal_entry_id.partner_id.id != invoice.partner_id.id:
+                        #print "Entrando al IF 192"
                         am_obj.write(cr, uid, [am_id], {'partner_id': invoice.partner_id.id})
                         aml_obj.write(cr, uid, aml_ids, {'partner_id': invoice.partner_id.id})
                     data_statement_line_ids.append(statement.id)
 
+            #print "data_aml_ids: ", data_aml_ids
             if data_aml_ids:
                 move_ids = []
                 cad = ','.join(str(e) for e in data_aml_ids)
+                #print "cad: ", cad
                 cr.execute("select distinct statement_id from account_move_line where id in (%s);" % (cad))
                 a = cr.fetchall()
+                #print "a: ", a
                 statement_ids = [x[0] for x in a]
+                #print "statement_ids: ", statement_ids
                 for xstatement in statement_ids:
+                    #print "xstatement: ", xstatement
                     cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s limit 1;" % (cad, xstatement))
                     move_id = cr.fetchall()[0][0]
+                    #print "move_id: ", move_id
                     cr.execute("""update account_bank_statement_line set journal_entry_id=%s where id in (%s);""" % 
                                (move_id, ','.join(str(x) for x in data_statement_line_ids)))
                     cr.execute("select distinct move_id from account_move_line where id in (%s) and statement_id=%s;" % (cad, xstatement))
                     xids = [x[0] for x in cr.fetchall()]
+                    #print "xids: ", xids
                     for move in am_obj.browse(cr, uid, xids):
+                        #print "move_id != move.id: %s - %s - %s" % (move_id, move.id, bool(move_id != move.id))
                         if move_id != move.id:
                             move_ids.append(str(move.id))
-                    cr.execute("""
+                    #print "move_ids: ", move_ids
+                    sql = """
                         drop table if exists argil_account_move_line;
                         create table argil_account_move_line
                         as
@@ -250,10 +268,15 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                         from argil_account_move_line);
                         drop table if exists argil_account_move_line;
 
-                    """ % (move_id, cad, xstatement, invoice.partner_id.id, invoice.account_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0')))
-                    if posted:
-                        am_obj.post(cr, uid, [move_id])
+                    """ % (move_id, cad, xstatement, invoice.partner_id.id, invoice.account_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0'))
+                    #print "sql: ", sql
+                    cr.execute(sql)
+                    #if posted:
+                    #    am_obj.post(cr, uid, [move_id])
+                    
+                    #print "move_id: ", move_id
                     aml_to_reconcile = self.get_aml_to_reconcile(cr, uid, [move_id, invoice.move_id.id])
+                    #print "aml_to_reconcile: ", aml_to_reconcile
                     res2 = aml_obj.reconcile_partial(cr, uid, aml_to_reconcile, context=context)
 
 

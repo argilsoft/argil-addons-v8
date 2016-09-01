@@ -255,7 +255,10 @@ class eaccount_complements(osv.osv):
             if 'TipoCambio' in vouchNode.attrib.keys():
                 vals['exchange_rate'] = float(vouchNode.attrib['TipoCambio'])
             vals['cbb_series'] = vouchNode.attrib.get('serie', '')
-            vals['cbb_number'] = int(vouchNode.attrib.get('folio', 0))
+            try:
+                vals['cbb_number'] = int(vouchNode.attrib.get('folio', 0))
+            except:
+                pass
             vals['rfc'] = emitterNode.attrib['rfc']
             vals['rfc2'] = receiverNode.attrib['rfc']
             vals['compl_date'] = vouchNode.attrib['fecha'][0:10]

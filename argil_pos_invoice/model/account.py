@@ -178,7 +178,9 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                     continue
                 for statement in order.statement_ids:
                     #print "statement: ", statement
-                    if statement.statement_id.journal_id.pos_payments_remove_entries or not statement.journal_entry_id.id: 
+                    #print "statement.journal_entry_id: %s - %s" % (statement.journal_entry_id.id, statement.journal_entry_id.name)
+                    if statement.statement_id.journal_id.pos_payments_remove_entries or not statement.journal_entry_id.id:
+                        #print "Se salta el registro..."
                         continue
                     aml_ids = [x.id for x in statement.journal_entry_id.line_id]
                     #print "aml_ids: ", aml_ids
@@ -271,8 +273,8 @@ class account_invoice_pos_reconcile_with_payments(osv.osv_memory):
                     """ % (move_id, cad, xstatement, invoice.partner_id.id, invoice.account_id.id, cad, xstatement, (move_ids and ', '.join(move_ids) or '0'))
                     #print "sql: ", sql
                     cr.execute(sql)
-                    #if posted:
-                    #    am_obj.post(cr, uid, [move_id])
+                    if posted:
+                        am_obj.post(cr, uid, [move_id])
                     
                     #print "move_id: ", move_id
                     aml_to_reconcile = self.get_aml_to_reconcile(cr, uid, [move_id, invoice.move_id.id])

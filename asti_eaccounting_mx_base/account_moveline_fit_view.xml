@@ -13,7 +13,7 @@
                     <button type="object" name="edit_complements" string="Auxiliar de folios" class="oe_highlight"/>
                 </field>
                 <tree position="replace">
-                    <tree colors="blue:state == 'draft';black:state == 'posted'" string="Journal Items">
+                    <tree colors="blue:state == 'draft';black:state == 'posted'" string="Journal Items" editable="bottom">
                         <button type="object" name="edit_eaccount_info" icon="terp-folder-blue" class="oe_highlight" help="Probando ayuda"/>
                         <field name="invoice"/>
                         <field name="name"/>
@@ -25,8 +25,10 @@
                         <field name="analytic_account_id" groups="analytic.group_analytic_accounting"/>
                         <field name="amount_currency"/>
                         <field name="currency_id" groups="base.group_multi_currency"/>
-                        <field name="tax_code_id"/>
-                        <field name="tax_amount"/>
+                        <field name="tax_id_secondary"/>
+                        <field name="amount_base"/>
+                        <field name="not_move_diot"/>
+                        <!--<field name="tax_amount"/>-->
                         <field name="state"/>
                         <field name="reconcile_id"/>
                         <field name="reconcile_partial_id"/>
